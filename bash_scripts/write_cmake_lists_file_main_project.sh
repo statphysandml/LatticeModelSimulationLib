@@ -93,9 +93,9 @@ include_directories(${path_to_mcmc_simulation_lib}/include/)
 SET(CudaUsage "None" CACHE STRING "Some user-specified option")
 
 if( CudaUsage MATCHES "GPU" OR CudaUsage MATCHES "CPU" )
-    find_library(LatticeModelImplementations NAMES liblatticemodelimplementations.a PATHS ${path_to_lattice_model_implementations}/libgpu)
-    message("LatticeModelImplementations = \${LatticeModelImplementations}")
-    include_directories(${path_to_lattice_model_implementations}include/)
+    find_library(LatticeModelSimulationLib NAMES liblatticemodelsimulationlib.a PATHS ${path_to_lattice_simulation_lib}/libgpu)
+    message("LatticeModelSimulationLib = \${LatticeModelSimulationLib}")
+    include_directories(${path_to_lattice_simulation_lib}include/)
 
     option( THRUST "Enable Thrust" ON)
     message("Thrust = \${THRUST}")
@@ -158,7 +158,7 @@ cat >>$project_path/cmake/CMakeLists.txt <<EOL
     )
     set_property(TARGET ${project_name} PROPERTY CUDA_STANDARD 14)
 
-    target_link_libraries( ${project_name} \${LatticeModelImplementations} \${MCMCSimulationLib} ${target_link_libraries_appendix})
+    target_link_libraries( ${project_name} \${LatticeModelSimulationLib} \${MCMCSimulationLib} ${target_link_libraries_appendix})
 
     if (PYTHON)
       target_compile_definitions(${project_name} PUBLIC -D PYTHON)
@@ -178,9 +178,9 @@ cat >>$project_path/cmake/CMakeLists.txt <<EOL
 else()
     set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -std=c++14 -static-libstdc++ -lboost_system -lboost_filesystem")
 
-    find_library(LatticeModelImplementations NAMES liblatticemodelimplementations.a PATHS ${path_to_lattice_model_implementations}/lib)
-    message("LatticeModelImplementations = \${LatticeModelImplementations}")
-    include_directories(${path_to_lattice_model_implementations}/include/)
+    find_library(LatticeModelSimulationLib NAMES liblatticemodelsimulationlib.a PATHS ${path_to_lattice_simulation_lib}/lib)
+    message("LatticeModelSimulationLib = \${LatticeModelSimulationLib}")
+    include_directories(${path_to_lattice_simulation_lib}/include/)
 
     if(CMAKE_COMPILER_IS_GNUCXX)
       set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -Wall -Werror")
@@ -208,7 +208,7 @@ cat >>$project_path/cmake/CMakeLists.txt <<EOL
     if (PYTHON)
       target_compile_definitions(${project_name} PUBLIC -D PYTHON)
     endif()
-    target_link_libraries( ${project_name} \${LatticeModelImplementations} \${MCMCSimulationLib} ${target_link_libraries_appendix})
+    target_link_libraries( ${project_name} \${LatticeModelSimulationLib} \${MCMCSimulationLib} ${target_link_libraries_appendix})
 endif()
 
 # Go to build directory and call

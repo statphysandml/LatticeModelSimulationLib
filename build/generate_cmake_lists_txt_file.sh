@@ -1,7 +1,7 @@
 target_link_libraries_appendix="\${MCMCSimulationLib} \${ParamHelper}"
 cat >../CMakeLists.txt <<EOL
 cmake_minimum_required(VERSION 3.13)
-project(LatticeModelImplementations)
+project(LatticeModelSimulationLib)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -104,23 +104,23 @@ cat >>../CMakeLists.txt <<EOL
       set(CMAKE_EXE_LINKER_FLAGS "-s")  # Strip binary
     endif()
         
-    cuda_add_library(latticemodelimplementations STATIC src/main.cpp)
-    set_property(TARGET latticemodelimplementations PROPERTY CUDA_STANDARD 14)
+    cuda_add_library(latticemodelsimulationlib STATIC src/main.cpp)
+    set_property(TARGET latticemodelsimulationlib PROPERTY CUDA_STANDARD 14)
 
     if (PYTHON)
-      target_compile_definitions(latticemodelimplementations PUBLIC -D PYTHON)
+      target_compile_definitions(latticemodelsimulationlib PUBLIC -D PYTHON)
     endif()
 
     if (THRUST)
-      target_compile_definitions(latticemodelimplementations PUBLIC -D THRUST)
+      target_compile_definitions(latticemodelsimulationlib PUBLIC -D THRUST)
     endif()
 
     if (GPU)
-      target_compile_definitions(latticemodelimplementations PUBLIC -D GPU)
+      target_compile_definitions(latticemodelsimulationlib PUBLIC -D GPU)
     endif()
 
-    target_link_libraries(latticemodelimplementations ${target_link_libraries_appendix})
-    set_target_properties(latticemodelimplementations PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+    target_link_libraries(latticemodelsimulationlib ${target_link_libraries_appendix})
+    set_target_properties(latticemodelsimulationlib PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 else()
     set(CMAKE_CXX_FLAGS "\${CMAKE_CXX_FLAGS} -std=c++14 -static-libstdc++ -lboost_system -lboost_filesystem")
     
@@ -133,13 +133,13 @@ else()
         set(CMAKE_EXE_LINKER_FLAGS "-s")  # Strip binary
     endif()
     
-    add_library(latticemodelimplementations STATIC src/main.cpp)
+    add_library(latticemodelsimulationlib STATIC src/main.cpp)
 
     if (PYTHON)
-      target_compile_definitions(latticemodelimplementations PUBLIC -D PYTHON)
+      target_compile_definitions(latticemodelsimulationlib PUBLIC -D PYTHON)
     endif()
 
-    target_link_libraries( latticemodelimplementations ${target_link_libraries_appendix})
+    target_link_libraries( latticemodelsimulationlib ${target_link_libraries_appendix})
 endif()
 
 SET( APP_EXE StaticTest )
@@ -148,6 +148,6 @@ ADD_EXECUTABLE( \${APP_EXE}
         src/main.cpp )
         
 TARGET_LINK_LIBRARIES( \${APP_EXE}
-        latticemodelimplementations)
+        latticemodelsimulationlib)
 
 EOL

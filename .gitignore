@@ -12,3 +12,5 @@ __pychache__/
 CMakeLists.txt
 build/config.sh
 bash_scripts/project_config.sh
+debug/
+release/
