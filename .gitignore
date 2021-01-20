@@ -1,0 +1,14 @@
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.pyc
+.idea/
+lib/
+libgpu/
+__pychache__/
+.ipynb_checkpoints/
+CMakeLists.txt
+build/config.sh
+bash_scripts/project_config.sh
