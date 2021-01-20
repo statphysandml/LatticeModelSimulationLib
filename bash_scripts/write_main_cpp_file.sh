@@ -79,7 +79,7 @@ void custom_main()
     SystemBaseParams lattice_parameters(
             json {
                     {"dimensions", dimensions},
-                    {"measures", {"Config", "Mean", "Std"}},
+                    {"measures", {"Config", "Mean", "Variance"}},
                     {ModelParams::param_file_name(), model_parameters.get_json()},
                     {MCMCUpdateParams::param_file_name(), mcmc_update_parameters.get_json()},
                     {UpdateDynamicsParams::param_file_name(), update_dynamics_parameters.get_json()}}
