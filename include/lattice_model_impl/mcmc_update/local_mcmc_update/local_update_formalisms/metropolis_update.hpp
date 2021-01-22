@@ -12,36 +12,6 @@
 namespace lm_impl {
     namespace mcmc_update {
 
-        namespace detail {
-            // T operator() (const T site)
-            template<typename T, typename UpdateFormalismCl, typename = void>
-            struct is_updateable : std::false_type {
-            };
-
-            template<typename T, typename UpdateFormalismCl>
-            struct is_updateable<T, UpdateFormalismCl, std::void_t<decltype(std::declval<UpdateFormalismCl>().template operator()<T>(
-                    std::declval<const T>())),
-                    decltype(std::declval<UpdateFormalismCl>().template operator()<T>(std::declval<const T>(),
-                                                                                      std::declval<const double>(),
-                                                                                      std::declval<double>()))> >
-                    : std::true_type {
-            };
-
-
-            template<typename T, typename UpdateFormalismCl, typename = void>
-            struct is_estimate_drift_term : std::false_type {
-            };
-            template<typename T, typename UpdateFormalismCl>
-            // T operator() (const T site)
-            struct is_estimate_drift_term<T, UpdateFormalismCl, std::void_t<decltype(std::declval<UpdateFormalismCl>().template estimate_drift_term<T>(
-                    std::declval<const T>())),
-                    decltype(std::declval<UpdateFormalismCl>().template estimate_drift_term<T>(std::declval<const T>(),
-                                                                                               std::declval<const double>(),
-                                                                                               std::declval<double>()))> >
-                    : std::true_type {
-            };
-        }
-
         template<typename ModelParameters, typename SamplerCl>
         class MetropolisUpdate;
 

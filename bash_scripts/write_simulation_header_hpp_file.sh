@@ -20,45 +20,32 @@ cat >"${include_path}/simulation_header.hpp" <<EOL
 
 
 namespace from_file_simulation {
-    /* typedef double BasicType;
-    typedef lm_impl::lattice_system::XYModelParameters ModelParams;
-    typedef lm_impl::mcmc_update::HybridMonteCarloUpdateParameters<BasicType, ModelParams, mcmc::sampler::GaussianSampler> UpdateParams;
-    typedef lm_impl::lattice_system::LatticeParameters< BasicType, ModelParams, UpdateParams, lm_impl::update_dynamics::GlobalLatticeUpdateParameters> SystemBaseParams; */
-
-    template<typename ModelParameters>
-    struct ComplexLangevinDynamics
-    {
-        typedef std::complex<double> BasicType;
-        typedef lm_impl::mcmc_update::ComplexLangevinUpdateParameters<ModelParameters, mcmc::sampler::GaussianSampler> MCMCUpdateParams;
-        typedef lm_impl::update_dynamics::MemorySiteSimpleUpdateParameters<BasicType> UpdateDynamicsParams;
-        typedef lm_impl::site_system::SiteParameters< BasicType, ModelParameters, MCMCUpdateParams, UpdateDynamicsParams > SystemBaseParams;
-    };
-
-    template<typename ModelParameters>
+    template<typename BasicType, typename Sampler, typename ModelParameters>
     struct MetropolisDynamics
     {
-        typedef double BasicType;
-        typedef lm_impl::mcmc_update::MetropolisUpdateParameters<ModelParameters, mcmc::sampler::GaussianSampler> MCMCUpdateParams;
+        typedef lm_impl::mcmc_update::MetropolisUpdateParameters<ModelParameters, Sampler> MCMCUpdateParams;
         typedef lm_impl::update_dynamics::SequentialUpdateParameters UpdateDynamicsParams;
         typedef lm_impl::lattice_system::LatticeParameters< BasicType, ModelParameters, MCMCUpdateParams, UpdateDynamicsParams> SystemBaseParams;
 
     };
 
-    template<typename ModelParameters>
+    template<typename BasicType, typename Sampler, typename ModelParameters>
     void run_based_on_algorithm(int argc, char **argv)
     {
         std::string algorithm = std::string(argv[5]);
 
-        if(algorithm == "ComplexLangevinDynamics")
-            mcmc::execution::run_from_file<typename ComplexLangevinDynamics<ModelParameters>::SystemBaseParams>(argc, argv);
+        if(algorithm == "MetropolisDynamics")
+            mcmc::execution::run_from_file<typename MetropolisDynamics<BasicType, Sampler, ModelParameters>::SystemBaseParams>(argc, argv);
     }
 
     void run_based_on_model_and_algorithm(int argc, char **argv)
     {
         std::string model = std::string(argv[6]);
 
-        if(model == "ComplexPolynomialModel")
-            run_based_on_algorithm<lm_impl::site_system::ComplexPolynomialModelParameters>(argc, argv);
+        if(model == "ONModel")
+            run_based_on_algorithm< lm_impl::link::ON<double, 4>,
+                lm_impl::lattice_system::ONModelSampler,
+                lm_impl::lattice_system::ONModelParameters >(argc, argv);
     }
 }
 

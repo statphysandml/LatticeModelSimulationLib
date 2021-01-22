@@ -24,3 +24,13 @@ source "${path_to_mcmc_simulation_lib}/bash_scripts/generic_compiling.sh"
 # Add bash_script for possibility to generate simulations
 mkdir -p "$project_path/bash_scripts/"
 source "${path_to_lattice_simulation_lib}/bash_scripts/write_project_related_build_simulation_sh_file.sh"
+
+# Copy python scripts
+cp -r "$path_to_lattice_simulation_lib/bash_scripts/python_scripts/" "${project_path}/"
+
+# Copy jupyter notebooks
+cp -r "$path_to_lattice_simulation_lib/bash_scripts/jupyter_notebooks/" "${project_path}/"
+
+# Copy raw_transformer.py
+mkdir -p "${project_path}/data/ONModelMetropolis/raw/"
+cp "$path_to_lattice_simulation_lib/bash_scripts/raw_transformer/raw_transformer.py" "${project_path}/data/ONModelMetropolis/raw/raw_transformer.py"
