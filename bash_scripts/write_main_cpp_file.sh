@@ -168,6 +168,6 @@ void custom_main()
     //     make -j4
 }
 
-// Rerun the simulation with ./$project_name expectation_value XYModelMetropolis
+// Rerun the simulation with ./$project_name expectation_value ONModelMetropolis
 
 EOL
