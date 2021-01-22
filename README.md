@@ -146,7 +146,7 @@ Projects using the MCMCSimulationLib library
 
 - LatticeModelImplementations (https://github.com/statphysandml/LatticeModelImplementations)
 
-Support and development
+Support and Development
 ----------------------
 
 For bug reports/suggestions/complaints please file an issue on GitHub.
