@@ -109,7 +109,7 @@ void custom_main()
     // Store the simulation parameters - Only necessary if one wants to run the simulation again or on a CPU cluster, for example.
     simulation_params.write_to_file(rel_config_path);
 
-    // Running the code with the exectuer function
+    // Running the code with the executer function
     mcmc::execution::execute< SystemBaseParams > (ExecutionParams::name(), model_name);
 
     // Alternatively, you can set up and run the actual simulation. This also works without storing the simulation
