@@ -41,7 +41,7 @@ It is straightforward to implement a new model that makes use of the existing al
 Build
 -----
 
-The library is build in almost the exact same way as the MCMCSimulationLib (https://github.com/statphysandml/MCMCSimulationLib). Therefore, the most of instruction is taken from there:
+The library is build in almost the exact same way as the MCMCSimulationLib (https://github.com/statphysandml/MCMCSimulationLib). Therefore, most of instruction is taken from there. For the MCMCSimulationLib there exists a more thorough getting started guide (https://github.com/statphysandml/MCMCSimulationLib/blob/master/doc/getting_started.md) that also explains how the virtual environment for Python can be set up. It also contains a short introduction to the LatticeModelSimulationLib. The getting started guide might be a bit more accessible than the instructions provided here. But it is important note that the a building of the MCMCSimulationLib is not necesseary for this project since the library is integrated here as a submodule.
 
 Certain configuration parameters need to be defined for an execution of the C++ program. They need to be defined in a config.sh file in the build/ directory and in a project_config.sh file in the bash_scripts/ directory. The config.sh file contains all important information for the integration of Python into the program. So far, the library can only be used with a virtual environment. The config_template.sh file is a template where all necessary parameters are defined:
 ```bash
@@ -103,6 +103,14 @@ make -j4
 ```
 
 in the release directory of your project. More details on how to execute a simulation on the cluster can be found in the main.cpp file of the SimulateAndExecute example (https://github.com/statphysandml/MCMCSimulationLib/blob/master/examples/simulations/SimulateAndExecute/main.cpp) or in the main.cpp file of a template project (see Template Project).
+
+To keep track of changes in the submodules when pulling updates of the respository, we strongly recommend for an update on your local machine to use
+
+```bash
+git pull --recurse-submodules
+```
+
+otherwise the code might not run properly after an update of the library.
 
 Examples
 --------
