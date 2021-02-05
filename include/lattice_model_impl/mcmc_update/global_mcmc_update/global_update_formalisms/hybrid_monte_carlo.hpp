@@ -62,6 +62,7 @@ namespace lm_impl {
             template<typename Lattice>
             void initialize_mcmc_update(const Lattice &lattice) {
                 momenta = std::vector<double>(lattice.size(), 0.0);
+                backup_momenta = std::vector<double>(lattice.size(), 0.0);
             }
 
             template<typename Lattice>
@@ -71,6 +72,7 @@ namespace lm_impl {
 
                 // Sample momenta
                 std::generate(momenta.begin(), momenta.end(), [this]() { return normal(mcmc::util::gen); });
+                std::copy(momenta.begin(), momenta.end(), backup_momenta.begin());
 
                 HamiltonianSystem hamiltonian_system(model, lattice.get_neighbours());
 
@@ -82,7 +84,12 @@ namespace lm_impl {
                 lattice.normalize(lattice.get_system_representation());
 
                 auto proposal_energy = lattice.energy();
-                if (rand(mcmc::util::gen) >= std::min(1.0, std::exp(-1.0 * (proposal_energy - current_energy)))) {
+
+                auto kinetic_term = std::inner_product(backup_momenta.begin(), backup_momenta.end(), backup_momenta.begin(), 0.0);
+                auto proposal_kinetic_term = std::inner_product(momenta.begin(), momenta.end(), momenta.begin(), 0.0);
+
+                if (rand(mcmc::util::gen) >= std::min(1.0, std::exp(
+                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term)))) {
                     auto &lattice_grid = lattice.get_system_representation();
                     lattice_grid = current_lattice_grid;
                 }
@@ -111,6 +118,7 @@ namespace lm_impl {
             typename ModelParameters::Model &model;
 
             std::vector<double> momenta;
+            std::vector<double> backup_momenta;
             std::normal_distribution<double> normal;
             std::uniform_real_distribution<double> rand;
         };
