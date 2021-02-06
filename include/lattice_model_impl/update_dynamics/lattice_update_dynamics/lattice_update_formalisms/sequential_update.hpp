@@ -31,13 +31,13 @@ namespace lm_impl {
 
             template<typename Lattice>
             void initialize_update(const Lattice &lattice) {
-                uniint = std::uniform_int_distribution<int>(0, lattice.get_size() - 1);
+                uniint = std::uniform_int_distribution<int>(0, lattice.size() - 1);
             }
 
             template<typename Lattice>
             void update(Lattice &lattice, uint measure_interval = 1) {
                 for (size_t k = 0; k < measure_interval; k++) {
-                    for (uint j = 0; j < lattice.get_size(); j++) {
+                    for (uint j = 0; j < lattice.size(); j++) {
                         int i = uniint(mcmc::util::gen);
                         lattice[i] = update_lattice_site(lattice.get_update_formalism(), lattice[i],
                                                          lattice.neighbours_at(i));

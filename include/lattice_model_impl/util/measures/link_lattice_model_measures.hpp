@@ -51,7 +51,7 @@ namespace lm_impl {
 
                 // Needs to be devided by the inverse temperature in a postprocessing step
                 std::string measure(const SB &system) override {
-                    return std::to_string(system.energy() / n_plaquettes_per_link);
+                    return std::to_string(system.energy() / n_plaquettes_per_link  / double(system.size()));
                 }
 
                 std::string name() {

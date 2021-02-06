@@ -18,7 +18,7 @@ namespace lm_impl {
             struct MeasureEnergyPolicy : public mcmc::common_measures::MeasurePolicy<SB> {
             public:
                 std::string measure(const SB &system) override {
-                    return std::to_string(system.energy());
+                    return std::to_string(system.energy() / double(system.size()));
                 }
 
                 std::string name() {
@@ -30,7 +30,7 @@ namespace lm_impl {
             struct MeasureDriftPolicy : public mcmc::common_measures::MeasurePolicy<SB> {
             public:
                 std::string measure(const SB &system) override {
-                    return std::to_string(system.drift_term());
+                    return std::to_string(system.drift_term() / double(system.size()));
                 }
 
                 std::string name() {

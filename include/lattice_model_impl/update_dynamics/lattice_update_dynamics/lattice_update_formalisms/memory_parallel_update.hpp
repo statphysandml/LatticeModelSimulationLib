@@ -38,11 +38,11 @@ namespace lm_impl {
             void update(Lattice &lattice, uint measure_interval = 1) {
                 // ToDo: Introduce boost!
                 for (auto j = 0; j < measure_interval; j++) {
-                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.get_size(),
+                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.size(),
                                                                              typename Lattice::SiteType(0));
 
                     // #pragma omp parallel for
-                    for (uint i = 0; i < lattice.get_size(); i++) {
+                    for (uint i = 0; i < lattice.size(); i++) {
                         lattice_grid_new[i] = update_lattice_site(lattice.get_update_formalism(), lattice[i],
                                                                   lattice.neighbours_at(i));
                     }

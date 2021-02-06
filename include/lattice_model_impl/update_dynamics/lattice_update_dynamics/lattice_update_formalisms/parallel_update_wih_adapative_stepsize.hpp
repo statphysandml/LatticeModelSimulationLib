@@ -58,7 +58,7 @@ namespace lm_impl {
                 for (int k = 0; k < lp.thermalization_steps; k++) {
 
                     double KMax = 0;
-                    for (uint i = 0; i < lattice.get_size(); i++) {
+                    for (uint i = 0; i < lattice.size(); i++) {
                         const double K = std::fabs(
                                 lattice.get_update_formalism().estimate_drift_term(lattice[i],
                                                                                    lattice.neighbours_at(i)));
@@ -67,11 +67,11 @@ namespace lm_impl {
                     }
                     KExpectation += KMax;
 
-                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.get_size(),
+                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.size(),
                                                                              typename Lattice::SiteType(0));
 
                     // #pragma omp parallel for
-                    for (uint i = 0; i < lattice.get_size(); i++) {
+                    for (uint i = 0; i < lattice.size(); i++) {
                         lattice_grid_new[i] = update_lattice_site(lattice.get_update_formalism(), lattice[i],
                                                                   lattice.neighbours_at(i));
                     }
@@ -91,7 +91,7 @@ namespace lm_impl {
                 for (uint j = 0; j < measure_interval; j++) {
 
                     double KMax = 0;
-                    for (uint i = 0; i < lattice.get_size(); i++) {
+                    for (uint i = 0; i < lattice.size(); i++) {
                         const double K = std::fabs(
                                 lattice.get_update_formalism().estimate_drift_term(lattice[i],
                                                                                    lattice.neighbours_at(i)));
@@ -99,11 +99,11 @@ namespace lm_impl {
                             KMax = K;
                     }
 
-                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.get_size(),
+                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.size(),
                                                                              typename Lattice::SiteType(0));
 
                     // #pragma omp parallel for
-                    for (uint i = 0; i < lattice.get_size(); i++) {
+                    for (uint i = 0; i < lattice.size(); i++) {
                         lattice_grid_new[i] = update_lattice_site(lattice.get_update_formalism(), lattice[i],
                                                                   lattice.neighbours_at(i), KMax, KExpectation);
                     }

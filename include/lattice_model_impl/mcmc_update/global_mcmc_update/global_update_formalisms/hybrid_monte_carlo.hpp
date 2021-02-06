@@ -95,7 +95,7 @@ namespace lm_impl {
 
                 // Accept/Reject step
                 if (rand(mcmc::util::gen) >= std::min(1.0, std::exp(
-                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term) / (up.m * lattice.size())))) {
+                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term) / up.m))) {
                     auto &lattice_grid = lattice.get_system_representation();
                     lattice_grid = current_lattice_grid;
                 }
@@ -125,7 +125,7 @@ namespace lm_impl {
 
                 void operator()(const std::vector<T> &p, std::vector<T> &dqdt) const {
                     for (uint i = 0; i < p.size(); i++) {
-                        dqdt[i] = p[i] / (m * p.size());
+                        dqdt[i] = p[i] / m;
                     }
                 }
 

@@ -241,16 +241,18 @@ namespace lm_impl {
                 for (uint i = 0; i < get_size(); i++) {
                     energy += model->get_energy_per_lattice_elem(lattice[i], neighbours[i]);
                 }
-                return energy / double(get_size());
+                return energy;
             }
 
             auto drift_term() const {
+                std::cout << "Drift term computation needs to be implemented here" << std::endl;
+                std::exit(EXIT_FAILURE);
                 decltype(model->get_potential(lattice[0], neighbours[0])) drift_term(0);
                 for (uint i = 0; i < get_size(); i++) {
                     // ToDo: How can this be integrated?
                     // drift_term += model->get_drift_term(lattice[i], neighbours[i]);
                 }
-                return drift_term / double(get_size());
+                return drift_term;
             }
 
             void normalize(std::vector<T> &lattice_grid) {
