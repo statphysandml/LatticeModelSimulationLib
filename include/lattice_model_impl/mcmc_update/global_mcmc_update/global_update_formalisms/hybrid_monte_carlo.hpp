@@ -25,12 +25,14 @@ namespace lm_impl {
         public:
             explicit HybridMonteCarloUpdateParameters(const json params_) : MCMCUpdateBaseParameters(params_),
                                                                             dt(get_entry<double>("dt", 0.01)),
-                                                                            n(get_entry<int>("n", 20)) {}
+                                                                            n(get_entry<int>("n", 20)),
+                                                                            m(get_entry<double>("m", 1.0)) {}
 
-            explicit HybridMonteCarloUpdateParameters(const double dt_, const int n_
+            explicit HybridMonteCarloUpdateParameters(const double dt_, const int n_, const double m_=1.0
             ) : HybridMonteCarloUpdateParameters(json{
                     {"dt", dt_},
-                    {"n",  n_}}) {}
+                    {"n",  n_},
+                    {"m", m_}}) {}
 
             static std::string name() {
                 return "HybridMonteCarloUpdate";
@@ -44,6 +46,7 @@ namespace lm_impl {
 
             const double dt;
             const int n;
+            const double m;
         };
 
 
@@ -74,10 +77,12 @@ namespace lm_impl {
                 std::generate(momenta.begin(), momenta.end(), [this]() { return normal(mcmc::util::gen); });
                 std::copy(momenta.begin(), momenta.end(), backup_momenta.begin());
 
-                HamiltonianSystem hamiltonian_system(model, lattice.get_neighbours());
+                HamiltonianSystemMomentum hamiltonian_system_momentum(model, lattice.get_neighbours());
+                HamiltonianSystemCoor hamiltonian_system_coor(up.m);
 
-                boost::numeric::odeint::integrate_n_steps(symplectic_stepper(), hamiltonian_system,
-                                                          make_pair(boost::ref(lattice.get_system_representation()),
+                boost::numeric::odeint::integrate_n_steps(symplectic_stepper(),
+                                                          std::make_pair(hamiltonian_system_coor, hamiltonian_system_momentum),
+                                                          std::make_pair(boost::ref(lattice.get_system_representation()),
                                                                     boost::ref(momenta)),
                                                           0.0, up.dt, up.n);
 
@@ -90,7 +95,7 @@ namespace lm_impl {
 
                 // Accept/Reject step
                 if (rand(mcmc::util::gen) >= std::min(1.0, std::exp(
-                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term) / lattice.size()))) {
+                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term) / (up.m * lattice.size())))) {
                     auto &lattice_grid = lattice.get_system_representation();
                     lattice_grid = current_lattice_grid;
                 }
@@ -100,8 +105,8 @@ namespace lm_impl {
 
         protected:
 
-            struct HamiltonianSystem {
-                HamiltonianSystem(typename ModelParameters::Model &model_,
+            struct HamiltonianSystemMomentum {
+                HamiltonianSystemMomentum(typename ModelParameters::Model &model_,
                                   const std::vector<std::vector<T *> > &neighbours_) : hmc_model(model_),
                                                                                        hmc_neighbours(neighbours_) {}
 
@@ -113,6 +118,18 @@ namespace lm_impl {
 
                 typename ModelParameters::Model &hmc_model;
                 const std::vector<std::vector<T *> > &hmc_neighbours;
+            };
+
+            struct HamiltonianSystemCoor {
+                HamiltonianSystemCoor(const double m_) : m(m_) {}
+
+                void operator()(const std::vector<T> &p, std::vector<T> &dqdt) const {
+                    for (uint i = 0; i < p.size(); i++) {
+                        dqdt[i] = p[i] / (m * p.size());
+                    }
+                }
+
+                const double m;
             };
 
             const HybridMonteCarloUpdateParameters<T, ModelParameters, SamplerCl> &up;
