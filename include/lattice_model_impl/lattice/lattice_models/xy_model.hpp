@@ -82,9 +82,10 @@ namespace lm_impl {
             template<typename T>
             T get_potential(const T site, const std::vector<T *> neighbours) {
                 double S = 0;
-                for (size_t i = 0; i < neighbours.size(); i += 2) {
-                    S += mp.J * std::cos(site - *neighbours[i]) + mp.h * std::cos(site);
+                for (size_t i = 0; i < neighbours.size(); i ++) {
+                    S += mp.J * std::cos(site - *neighbours[i]);
                 }
+                S += mp.h * std::cos(site);
                 return -1.0 * mp.beta * S;
             }
 
@@ -93,8 +94,9 @@ namespace lm_impl {
             {
                 double S = 0;
                 for (size_t i = 0; i < neighbours.size(); i += 2) {
-                    S += mp.J * std::cos(site - *neighbours[i]) + mp.h * std::cos(site);
+                    S += mp.J * std::cos(site - *neighbours[i]);
                 }
+                S += mp.h * std::cos(site);
                 return -1.0 * mp.beta * S;
             }
 
@@ -103,8 +105,9 @@ namespace lm_impl {
                 double S = 0;
                 for (size_t i = 0; i < neighbours.size(); i += 2) {
                     S += mp.J * std::sin(site - *neighbours[i]) +
-                         mp.J * std::sin(site - *neighbours[i + 1]) + mp.h * std::cos(site);
+                         mp.J * std::sin(site - *neighbours[i + 1]);
                 }
+                S += mp.h * std::sin(site);
                 return mp.beta * S;
             }
 

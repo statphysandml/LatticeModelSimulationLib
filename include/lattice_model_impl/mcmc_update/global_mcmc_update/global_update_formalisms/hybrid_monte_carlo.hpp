@@ -88,8 +88,9 @@ namespace lm_impl {
                 auto kinetic_term = std::inner_product(backup_momenta.begin(), backup_momenta.end(), backup_momenta.begin(), 0.0);
                 auto proposal_kinetic_term = std::inner_product(momenta.begin(), momenta.end(), momenta.begin(), 0.0);
 
+                // Accept/Reject step
                 if (rand(mcmc::util::gen) >= std::min(1.0, std::exp(
-                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term)))) {
+                        -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term) / lattice.size()))) {
                     auto &lattice_grid = lattice.get_system_representation();
                     lattice_grid = current_lattice_grid;
                 }
