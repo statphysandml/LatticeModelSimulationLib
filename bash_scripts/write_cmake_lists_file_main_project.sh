@@ -95,7 +95,7 @@ SET(CudaUsage "None" CACHE STRING "Some user-specified option")
 if( CudaUsage MATCHES "GPU" OR CudaUsage MATCHES "CPU" )
     find_library(LatticeModelSimulationLib NAMES liblatticemodelsimulationlib.a PATHS ${path_to_lattice_simulation_lib}/libgpu)
     message("LatticeModelSimulationLib = \${LatticeModelSimulationLib}")
-    include_directories(${path_to_lattice_simulation_lib}include/)
+    include_directories(${path_to_lattice_simulation_lib}/include/)
 
     option( THRUST "Enable Thrust" ON)
     message("Thrust = \${THRUST}")
@@ -124,7 +124,7 @@ cat >>$project_path/cmake/CMakeLists.txt <<EOL
     if( CudaUsage MATCHES "GPU" )
         option( GPU "Enable GPU" ON )
         message("GPU = \${GPU}")
-        list( APPEND CUDA_NVCC_FLAGS "-gencode arch=$nvcc_flag_gencode_arch, code=$nvcc_flag_gencode_code; --expt-extended-lambda; --expt-relaxed-constexpr") #  -Xcompiler -fopenmp -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP -lgomp"
+        list( APPEND CUDA_NVCC_FLAGS "-gencode arch=$nvcc_flag_gencode_arch,code=$nvcc_flag_gencode_code; --expt-extended-lambda; --expt-relaxed-constexpr") #  -Xcompiler -fopenmp -DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP -lgomp"
     else()
         option( GPU "Enable GPU" OFF )
         message("GPU = \${GPU}")

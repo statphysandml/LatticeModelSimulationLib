@@ -185,7 +185,7 @@ namespace lm_impl {
                     site = update_formalism->template cold_state<T>();
             }
 
-            const uint get_size() const {
+            uint get_size() const {
                 return 1;
             }
 

@@ -125,8 +125,8 @@ namespace lm_impl {
             std::unique_ptr<UpdateFormalismParameters> update_parameters;
             std::unique_ptr<LatticeUpdateFormalismParameters> lattice_update_parameters;
 
-            uint16_t n_sites; // Total number of sites
-            uint16_t size; // Total number of elements on lattice
+            uint n_sites; // Total number of sites
+            uint size; // Total number of elements on lattice
             std::vector<int> dimensions; // Different dimensions
             std::vector<int> dim_mul; // Accumulated different dimensions (by product)
             int dimension; // Number of dimensions

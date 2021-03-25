@@ -31,7 +31,7 @@ namespace lm_impl {
         public:
             using Parameters::Parameters;
 
-            const void write_to_file(const std::string &root_dir) {
+            void write_to_file(const std::string &root_dir) {
                 Parameters::write_to_file(root_dir, param_file_name());
             }
 
