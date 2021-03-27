@@ -16,16 +16,49 @@ namespace lm_impl {
         class ONModelParameters : public LatticeModelParameters {
         public:
             explicit ONModelParameters(const json params_) : LatticeModelParameters(params_),
-                                                                beta(get_entry<double>("beta")),
-                                                                kappa(get_entry<double>("kappa")),
-                                                                lambda(get_entry<double>("lambda"))
+                                                                kappa(set_kappa()),
+                                                                lambda(set_lambda())
             {}
 
-            explicit ONModelParameters(double beta_, double m_, double lambda_) : ONModelParameters(json{
-                    {"beta", beta_},
-                    {"kappa", m_},
-                    {"lambda", lambda_}
-            }) {}
+            double set_kappa()
+            {
+                if(haskey("m0") and haskey("lambda0"))
+                {
+                    double m0_ = get_entry<double>("m0");
+                    double lambda0_ = get_entry<double>("lambda0");
+                    auto kappa_ = (-1.0 * m0_ + std::sqrt(std::pow(m0_, 2.0) + 8 * lambda0_)) / (4.0 * lambda0_);
+                    add_entry("kappa", kappa_);
+                }
+                return get_entry<double>("kappa");
+            }
+
+            double set_lambda()
+            {
+                if(haskey("m0") and haskey("lambda0"))
+                {
+                    double m0_ = get_entry<double>("m0");
+                    double lambda0_ = get_entry<double>("lambda0");
+                    auto kappa_ = (-1.0 * m0_ + std::sqrt(std::pow(m0_, 2.0) + 8 * lambda0_)) / (4.0 * lambda0_);
+                    add_entry("lambda", lambda0_ * std::pow(kappa_, 2.0));
+                }
+                return get_entry<double>("lambda") / 6.0;  // Adpatation to 1/4! instead of 1/4
+            }
+
+            static ONModelParameters from_lambda_and_kappa(double lambda_, double kappa_)
+            {
+                return ONModelParameters(json{
+                        {"kappa", kappa_},
+                        {"lambda", lambda_}
+                });
+            }
+
+            static ONModelParameters from_lambda_and_mass(double lambda0_, double m0_)
+            {
+                return ONModelParameters(json{
+                        {"m0", m0_},
+                        {"lambda0", lambda0_}
+                });
+            }
 
             const static std::string name() {
                 return "ONModel";
@@ -36,7 +69,6 @@ namespace lm_impl {
         private:
             friend class ONModel;
 
-            const double beta;
             const double kappa;
             const double lambda;
         };
@@ -45,7 +77,7 @@ namespace lm_impl {
         public:
             explicit ONModel(const ONModelParameters &mp_) : mp(mp_) {}
 
-            // According to equation (3.16) from Smit QFT Lattice
+            // According to equation (3.16) from Smit QFT Lattice with the adaption the we choose 1/4! instead of 1/4
             template<typename T, typename T2=double_t>
             T2 get_potential(const T site, const std::vector<T*> neighbours)
             {
@@ -55,7 +87,7 @@ namespace lm_impl {
                 }
                 double site_sq = site * site;
                 potential = 2.0 * mp.kappa * potential - site_sq - mp.lambda * pow(site_sq - 1.0, 2.0);
-                return -1.0 * mp.beta * potential;
+                return -1.0 * potential;
             }
 
             template<typename T, typename T2=double_t>
@@ -67,12 +99,18 @@ namespace lm_impl {
                 }
                 double site_sq = site * site;
                 potential = 2.0 * mp.kappa * potential - site_sq - mp.lambda * pow(site_sq - 1.0, 2.0);
-                return -1.0 * mp.beta * potential;
+                return -1.0 * potential;
             }
 
-            template<typename T, typename T2=double_t>
-            T2 get_drift_term(const T site, const std::vector<T *> neighbours) {
-                return T2(0.0);
+            template<typename T>
+            T get_drift_term(const T site, const std::vector<T *> neighbours) {
+                auto drift = T(0);
+                for(size_t i = 0; i < neighbours.size(); i++) {
+                    drift += *neighbours[i];
+                }
+                double site_sq = site * site;
+                drift = -2.0 * mp.kappa * drift + 2.0 * site + 4.0 * mp.lambda * site * (site_sq - 1.0);
+                return drift;
             }
 
         private:
