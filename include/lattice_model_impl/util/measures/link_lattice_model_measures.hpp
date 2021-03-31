@@ -26,7 +26,7 @@ namespace lm_impl {
                     for(auto i = 0; i < system.size(); i += elem_per_site * dimensions[0])
                     {
                         typename SB::SiteType group_elem = system[i];
-                        for(auto tau = elem_per_site; tau < elem_per_site * dimensions[0]; tau += elem_per_site)
+                        for(uint tau = elem_per_site; tau < elem_per_site * dimensions[0]; tau += elem_per_site)
                             group_elem = group_elem * system[i + tau];
                         polyakov_loop += group_elem.trace();
                     }

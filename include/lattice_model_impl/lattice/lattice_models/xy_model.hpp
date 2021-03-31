@@ -21,7 +21,7 @@ namespace lm_impl {
                 auto sum_cos = decltype(system[0]){0};
                 auto sum_sin = decltype(system[0]){0};
 
-                for (auto i = 0; i < system.size(); i++) {
+                for (uint i = 0; i < system.size(); i++) {
                     sum_cos += std::cos(system[i]);
                     sum_sin += std::sin(system[i]);
                 }
