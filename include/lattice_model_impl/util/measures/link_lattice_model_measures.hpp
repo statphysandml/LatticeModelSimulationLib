@@ -23,7 +23,7 @@ namespace lm_impl {
                 std::string measure(const SB &system) override {
                     // Hasn't Dasbeen tested!!
                     std::complex<double> polyakov_loop = 0;
-                    for(auto i = 0; i < system.size(); i += elem_per_site * dimensions[0])
+                    for(uint i = 0; i < system.size(); i += elem_per_site * dimensions[0])
                     {
                         typename SB::SiteType group_elem = system[i];
                         for(uint tau = elem_per_site; tau < elem_per_site * dimensions[0]; tau += elem_per_site)
