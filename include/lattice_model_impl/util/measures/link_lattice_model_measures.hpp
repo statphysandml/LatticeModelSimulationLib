@@ -21,7 +21,7 @@ namespace lm_impl {
                 {}
 
                 std::string measure(const SB &system) override {
-                    // Hasn't been tested!!
+                    // Hasn't Dasbeen tested!!
                     std::complex<double> polyakov_loop = 0;
                     for(auto i = 0; i < system.size(); i += elem_per_site * dimensions[0])
                     {
