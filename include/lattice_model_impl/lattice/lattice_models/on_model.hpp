@@ -24,9 +24,10 @@ namespace lm_impl {
             {
                 if(haskey("m0") and haskey("lambda0"))
                 {
+                    auto dim = get_entry<double>("dim");
                     double m0_ = get_entry<double>("m0");
-                    double lambda0_ = get_entry<double>("lambda0");
-                    auto kappa_ = (-1.0 * m0_ + std::sqrt(std::pow(m0_, 2.0) + 8 * lambda0_)) / (4.0 * lambda0_);
+                    double lambda0_ = get_entry<double>("lambda0") / 6.0;  // Adpatation to 1/4! instead of 1/4;
+                    auto kappa_ = (-1.0 * (m0_ + 2.0 * dim) + std::sqrt(std::pow(m0_ + 2.0 * dim, 2.0) + 8 * lambda0_)) / (4.0 * lambda0_);
                     add_entry("kappa", kappa_);
                 }
                 return get_entry<double>("kappa");
@@ -36,12 +37,13 @@ namespace lm_impl {
             {
                 if(haskey("m0") and haskey("lambda0"))
                 {
+                    auto dim = get_entry<double>("dim");
                     double m0_ = get_entry<double>("m0");
-                    double lambda0_ = get_entry<double>("lambda0");
-                    auto kappa_ = (-1.0 * m0_ + std::sqrt(std::pow(m0_, 2.0) + 8 * lambda0_)) / (4.0 * lambda0_);
+                    double lambda0_ = get_entry<double>("lambda0")  / 6.0;  // Adpatation to 1/4! instead of 1/4;
+                    auto kappa_ = (-1.0 * (m0_ + 2.0 * dim) + std::sqrt(std::pow(m0_ + 2.0 * dim, 2.0) + 8 * lambda0_)) / (4.0 * lambda0_);
                     add_entry("lambda", lambda0_ * std::pow(kappa_, 2.0));
                 }
-                return get_entry<double>("lambda") / 6.0;  // Adpatation to 1/4! instead of 1/4
+                return get_entry<double>("lambda");
             }
 
             static ONModelParameters from_lambda_and_kappa(double lambda_, double kappa_)
@@ -52,9 +54,10 @@ namespace lm_impl {
                 });
             }
 
-            static ONModelParameters from_lambda_and_mass(double lambda0_, double m0_)
+            static ONModelParameters from_lambda_and_mass(double lambda0_, double m0_, double dim_)
             {
                 return ONModelParameters(json{
+                        {"dim", dim_},
                         {"m0", m0_},
                         {"lambda0", lambda0_}
                 });

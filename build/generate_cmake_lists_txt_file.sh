@@ -104,7 +104,7 @@ cat >>../CMakeLists.txt <<EOL
       set(CMAKE_EXE_LINKER_FLAGS "-s")  # Strip binary
     endif()
         
-    cuda_add_library(latticemodelsimulationlib STATIC src/main.cpp)
+    cuda_add_library(latticemodelsimulationlib STATIC src/main.cpp src/representations/links/u1.cpp)
     set_property(TARGET latticemodelsimulationlib PROPERTY CUDA_STANDARD 14)
 
     if (PYTHON)
@@ -133,7 +133,7 @@ else()
         set(CMAKE_EXE_LINKER_FLAGS "-s")  # Strip binary
     endif()
     
-    add_library(latticemodelsimulationlib STATIC src/main.cpp)
+    add_library(latticemodelsimulationlib STATIC src/main.cpp src/representations/links/u1.cpp)
 
     if (PYTHON)
       target_compile_definitions(latticemodelsimulationlib PUBLIC -D PYTHON)
@@ -145,7 +145,8 @@ endif()
 SET( APP_EXE StaticTest )
 
 ADD_EXECUTABLE( \${APP_EXE}
-        src/main.cpp )
+        src/main.cpp
+        src/representations/links/u1.cpp)
         
 TARGET_LINK_LIBRARIES( \${APP_EXE}
         latticemodelsimulationlib)
