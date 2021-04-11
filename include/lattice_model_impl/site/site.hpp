@@ -233,11 +233,11 @@ namespace lm_impl {
                 return sp.get_json();
             }
 
-            T energy() const {
+            auto energy() const {
                 return model->get_potential(site);
             }
 
-            T drift_term() const {
+            auto drift_term() const {
                 return model->get_drift_term(site);
             }
 

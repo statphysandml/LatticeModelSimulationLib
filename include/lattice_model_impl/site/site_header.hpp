@@ -9,7 +9,8 @@
 #include "site_models/complex_polynomial_model.hpp"
 #include "site_models/complex_scalar_gaussian_model.hpp"
 #include "site_models/polynomial_model.hpp"
-
+#include "site_models/onelink_su_two_model.hpp"
+#include "site_models/onelink_su_3_model.hpp"
 #include "site.hpp"
 
 #endif //LATTICEMODELIMPLEMENTATIONS_SITE_HEADER_HPP

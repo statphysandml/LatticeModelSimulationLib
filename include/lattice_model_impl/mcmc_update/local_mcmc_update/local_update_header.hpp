@@ -10,5 +10,6 @@
 #include "local_update_formalisms/langevin_update.hpp"
 #include "local_update_formalisms/langevin_update_on.hpp"
 #include "local_update_formalisms/metropolis_update.hpp"
-
+#include "local_update_formalisms/langevin_update_su_two.hpp"
+#include "local_update_formalisms/langevin_update_su_3.hpp"
 #endif //LATTICEMODELIMPLEMENTATIONS_LOCAL_UPDATE_HEADER_HPP
