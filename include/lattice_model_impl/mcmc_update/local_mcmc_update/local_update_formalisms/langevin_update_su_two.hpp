@@ -9,8 +9,8 @@
 #include "../../mcmc_update_base.hpp"
 #include "../../../site/site_models/onelink_su_two_model.hpp"
 
-#include "/home/adrian/bachelor_project/anharmonicoscillators/Hosak/MyProject/include/Eigen/Dense"
-#include "/home/adrian/bachelor_project/anharmonicoscillators/Hosak/MyProject/include/unsupported/Eigen/MatrixFunctions"
+#include "../../../../external/Eigen/Dense"
+#include "../../../../external/unsupported/Eigen/MatrixFunctions"
 
 using namespace Eigen;
 using namespace std::literals;

@@ -8,8 +8,8 @@
 #include "../site_model.hpp"
 #include <math.h>
 
-#include "/home/adrian/bachelor_project/anharmonicoscillators/Hosak/MyProject/include/Eigen/Dense"
-#include "/home/adrian/bachelor_project/anharmonicoscillators/Hosak/MyProject/include/unsupported/Eigen/MatrixFunctions"
+#include "../../../external/Eigen/Dense"
+#include "../../../external/unsupported/Eigen/MatrixFunctions"
 
 using namespace Eigen;
 using namespace std::literals;
