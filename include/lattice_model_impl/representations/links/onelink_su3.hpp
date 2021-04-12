@@ -14,6 +14,7 @@
 
 #include "../link.hpp"
 
+using namespace std::literals;
 
 namespace lm_impl {
     namespace link {
@@ -107,7 +108,7 @@ namespace lm_impl {
                 x_.push_back(0);
                 x_.push_back(1);
             } else {
-                std::uniform_real_distribution<double> distribution(-1, 1);
+                /*std::uniform_real_distribution<double> distribution(-1, 1);
                 double length;
                 while (true) {
                     x_.clear();
@@ -120,7 +121,17 @@ namespace lm_impl {
                     if (length <= 1)
                         break;
                 }
-                for (int i = 0; i < 9; i++) x_[i] = x_[i] / length;
+                for (int i = 0; i < 9; i++) x_[i] = x_[i] / length;*/
+
+                x_.push_back(0);
+                x_.push_back(1i);
+                x_.push_back(1);
+                x_.push_back(1i);
+                x_.push_back(0);
+                x_.push_back(1i);
+                x_.push_back(1i);
+                x_.push_back(1);
+                x_.push_back(1);
             }
         }
 
@@ -267,7 +278,7 @@ namespace std {
     std::string to_string(lm_impl::link::OneLinkSU3<T> x)
     {
         std::string conf = "";
-        for(auto j = 0; j < 4; j++)
+        for(auto j = 0; j < 9; j++)
             conf += std::to_string(x(j)) + " ";
         conf = conf.substr(0, conf.size() -1);
         return conf;

@@ -167,7 +167,7 @@ namespace lm_impl {
 
 
             template<typename T, typename T2=std::complex<double>>
-            std::tuple<T2, T2, T2, T2, T2, T2, T2, T2> get_K_terms(T link) {
+            std::array<std::complex<double>, 8> get_K_terms(T link) {
 
                 Matrix3cd lambda_1;
                 lambda_1 << 0, 1.0, 0,
@@ -283,8 +283,9 @@ namespace lm_impl {
                 auto K8F = 3.0/M_q * (kappa*exp(mu)*D8P + pow(kappa, 2.0)*exp(2.0*mu)*D8P_inv)
                             + 3.0/M_qbar * (kappa*exp(-mu)*D8P_inv + pow(kappa, 2.0)*exp(-2.0*mu)*D8P);
 
-                
-                return std::make_tuple(K1B + K1F, K2B + K2F, K3B + K3F, K4B + K4F, K5B + K5F, K6B + K6F, K7B + K7F, K8B + K8F);
+                std::array<std::complex<double>, 8> values = { K1B + K1F, K2B + K2F, K3B + K3F, K4B + K4F,
+                                                                K5B + K5F, K6B + K6F, K7B + K7F, K8B + K8F };   
+            return values;
             }
 
 

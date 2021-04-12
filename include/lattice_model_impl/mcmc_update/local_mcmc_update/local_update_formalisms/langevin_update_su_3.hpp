@@ -71,21 +71,16 @@ namespace lm_impl {
             template<typename T>
             T operator()(const T site) {
 
-                std::complex<double> K1, K2, K3, K4, K5, K6, K7, K8;
-                std::tie(K1, K2, K3, K4, K5, K6, K7, K8) = model.get_K_terms(site);
-                std::complex<double> K_terms[8] = {K1, K2, K3, K4, K5, K6, K7, K8};
-
-                return update(site, &K_terms[8], up.epsilon, up.sqrt2epsilon);
+                std::array<std::complex<double>, 8> K_terms = model.get_K_terms(site);
+                return update(site, K_terms, up.epsilon, up.sqrt2epsilon);
             }
 
             template<typename T>
             T operator()(const T site, const double KMax, const double KExpectation) {
 
-                std::complex<double> K1, K2, K3, K4, K5, K6, K7, K8;
-                std::tie(K1, K2, K3, K4, K5, K6, K7, K8) = model.get_K_terms(site);
-                std::complex<double> eps_drift_term[8] = {K1, K2, K3, K4, K5, K6, K7, K8};
+                std::array<std::complex<double>, 8> eps_drift_term = model.get_K_terms(site);
                 double epsilon = std::min(up.epsilon, up.epsilon * KExpectation / KMax);
-                return update(site, &eps_drift_term[8], epsilon, std::sqrt(2 * epsilon));
+                return update(site, eps_drift_term, epsilon, std::sqrt(2 * epsilon));
             }
 
         private:
@@ -96,8 +91,7 @@ namespace lm_impl {
             std::normal_distribution<double> normal;
 
             template<typename T>
-            T update(T link, const std::complex<double> K_values[3], const double &epsilon, const double &sqrt2epsilon) {
-                //T new_site(0);
+            T update(T link, const  std::array<std::complex<double>, 8> K_values, const double &epsilon, const double &sqrt2epsilon) {
 
                 Matrix3cd lambda_1;
                 lambda_1 << 0, 1.0, 0,
@@ -166,7 +160,9 @@ namespace lm_impl {
 
                 Matrix3cd U_new = R*U;
 
-                T new_link(U_new(0,0), U_new(0,1), U_new(0,2), U_new(1, 0), U_new(1,1), U_new(1,2), U_new(2,0), U_new(2, 1), U_new(2, 2));
+                T new_link(U_new(0,0), U_new(0,1), U_new(0,2),
+                            U_new(1, 0), U_new(1,1), U_new(1,2),
+                            U_new(2,0), U_new(2, 1), U_new(2, 2));
                 
                 return new_link;
                 
