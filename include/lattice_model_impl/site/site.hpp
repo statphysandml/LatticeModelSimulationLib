@@ -229,6 +229,14 @@ namespace lm_impl {
                 return *update_formalism;
             }
 
+            auto &get_model() {
+                return *model;
+            }
+
+            auto get_model() const {
+                return *model;
+            }
+
             json get_params_json() const {
                 return sp.get_json();
             }

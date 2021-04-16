@@ -19,6 +19,40 @@ namespace lm_impl {
     namespace site_system {
 
 
+
+        template<typename SB>
+        struct MeasureOneLinkPlaquette : public mcmc::common_measures::MeasurePolicy<SB> {
+        public:
+            std::string measure(const SB &system) override {
+                auto model = system.get_model();
+                auto site = system.get_system_representation();
+                auto P = model.get_P(site);
+
+                return std::to_string(P);
+            }
+
+            std::string name() {
+                return "OneLinkPlaquette";
+            }
+        };
+
+        template<typename SB>
+        struct MeasureOneLinkInversePlaquette : public mcmc::common_measures::MeasurePolicy<SB> {
+        public:
+            std::string measure(const SB &system) override {
+                auto model = system.get_model();
+                auto site = system.get_system_representation();
+                auto P_inv = model.get_P_inv(site);
+
+                return std::to_string(P_inv);
+            }
+
+            std::string name() {
+                return "OneLinkInversePlaquette";
+            }
+        };
+
+
         class OneLinkSU3Model;
 
         class OneLinkSU3ModelParameters : public SiteModelParameters {
@@ -230,8 +264,11 @@ namespace lm_impl {
                 std::complex<double> mu = mp.mu;
                 std::complex<double> kappa = mp.kappa;
 
-                auto M_q = 1.0+3.0*kappa*exp(mu)*P + 3.0*pow(kappa, 2.0)*exp(2.0*mu)*P_inv + pow(kappa, 3.0)*exp(3.0*mu);
-                auto M_qbar = 1.0+3.0*kappa*exp(-mu)*P_inv + 3.0*pow(kappa, -2.0)*exp(2.0*mu)*P + pow(kappa, 3.0)*exp(-3.0*mu);
+                auto M_q = 1.0+3.0*kappa*exp(mu)*P + 
+                            3.0*pow(kappa, 2.0)*exp(2.0*mu)*P_inv + pow(kappa, 3.0)*exp(3.0*mu);
+                
+                auto M_qbar = 1.0+3.0*kappa*exp(-mu)*P_inv + 
+                            3.0*pow(kappa, 2.0)*exp(-2.0*mu)*P + pow(kappa, 3.0)*exp(-3.0*mu);
 
                 auto D1P = 1i/3.0 * (lambda_1*U).trace();
                 auto D2P = 1i/3.0 * (lambda_2*U).trace();
@@ -242,14 +279,14 @@ namespace lm_impl {
                 auto D7P = 1i/3.0 * (lambda_7*U).trace();
                 auto D8P = 1i/3.0 * (lambda_8*U).trace();
 
-                auto D1P_inv = -1i/3.0 * (lambda_1*U_inv).trace();
-                auto D2P_inv = -1i/3.0 * (lambda_2*U_inv).trace();
-                auto D3P_inv = -1i/3.0 * (lambda_3*U_inv).trace();
-                auto D4P_inv = -1i/3.0 * (lambda_4*U_inv).trace();
-                auto D5P_inv = -1i/3.0 * (lambda_5*U_inv).trace();
-                auto D6P_inv = -1i/3.0 * (lambda_6*U_inv).trace();
-                auto D7P_inv = -1i/3.0 * (lambda_7*U_inv).trace();
-                auto D8P_inv = -1i/3.0 * (lambda_8*U_inv).trace();
+                auto D1P_inv = -1i/3.0 * (U_inv*lambda_1).trace();
+                auto D2P_inv = -1i/3.0 * (U_inv*lambda_2).trace();
+                auto D3P_inv = -1i/3.0 * (U_inv*lambda_3).trace();
+                auto D4P_inv = -1i/3.0 * (U_inv*lambda_4).trace();
+                auto D5P_inv = -1i/3.0 * (U_inv*lambda_5).trace();
+                auto D6P_inv = -1i/3.0 * (U_inv*lambda_6).trace();
+                auto D7P_inv = -1i/3.0 * (U_inv*lambda_7).trace();
+                auto D8P_inv = -1i/3.0 * (U_inv*lambda_8).trace();
 
                 auto K1B = mp.beta/2.0 *(D1P + D1P_inv);
                 auto K1F = 3.0/M_q * (kappa*exp(mu)*D1P + pow(kappa, 2.0)*exp(2.0*mu)*D1P_inv)
@@ -286,6 +323,21 @@ namespace lm_impl {
                 std::array<std::complex<double>, 8> values = { K1B + K1F, K2B + K2F, K3B + K3F, K4B + K4F,
                                                                 K5B + K5F, K6B + K6F, K7B + K7F, K8B + K8F };   
             return values;
+            }
+
+        template<typename SB, typename SBP>
+            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>>
+            generate_model_measures(const SBP &system_parameters) {
+                auto measure_names = system_parameters.get_measures();
+
+                std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>> measures{};
+                for (auto &measure_name :  measure_names) {
+                    if (measure_name == "OneLinkPlaquette")
+                        measures.push_back(std::make_unique<MeasureOneLinkPlaquette <SB>>());
+                    if (measure_name == "OneLinkInversePlaquette")
+                        measures.push_back(std::make_unique<MeasureOneLinkInversePlaquette <SB>>());
+                };
+                return measures;
             }
 
 

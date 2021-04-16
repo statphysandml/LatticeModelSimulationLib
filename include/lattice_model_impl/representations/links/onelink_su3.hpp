@@ -123,14 +123,14 @@ namespace lm_impl {
                 }
                 for (int i = 0; i < 9; i++) x_[i] = x_[i] / length;*/
 
-                x_.push_back(0);
-                x_.push_back(1i);
                 x_.push_back(1);
-                x_.push_back(1i);
                 x_.push_back(0);
-                x_.push_back(1i);
-                x_.push_back(1i);
+                x_.push_back(0);
+                x_.push_back(0);
                 x_.push_back(1);
+                x_.push_back(0);
+                x_.push_back(0);
+                x_.push_back(0);
                 x_.push_back(1);
             }
         }
