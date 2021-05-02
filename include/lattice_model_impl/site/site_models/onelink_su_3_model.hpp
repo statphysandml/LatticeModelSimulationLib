@@ -53,6 +53,23 @@ namespace lm_impl {
         };
 
 
+        template<typename SB>
+        struct MeasureOneLinkPlaquette_real : public mcmc::common_measures::MeasurePolicy<SB> {
+        public:
+            std::string measure(const SB &system) override {
+                auto model = system.get_model();
+                auto site = system.get_system_representation();
+                auto P_real = std::real(model.get_P(site));
+
+                return std::to_string(P_real);
+            }
+
+            std::string name() {
+                return "OneLinkPlaquette_real";
+            }
+        };
+
+
         class OneLinkSU3Model;
 
         class OneLinkSU3ModelParameters : public SiteModelParameters {
@@ -336,6 +353,8 @@ namespace lm_impl {
                         measures.push_back(std::make_unique<MeasureOneLinkPlaquette <SB>>());
                     if (measure_name == "OneLinkInversePlaquette")
                         measures.push_back(std::make_unique<MeasureOneLinkInversePlaquette <SB>>());
+                    if (measure_name == "OneLinkPlaquette_real")
+                        measures.push_back(std::make_unique<MeasureOneLinkPlaquette_real <SB>>());
                 };
                 return measures;
             }
