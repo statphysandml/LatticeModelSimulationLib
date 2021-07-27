@@ -20,7 +20,7 @@ namespace lm_impl {
                 langevin_time_measure_interval = get_entry<double>("langevin_time_measure_interval", 1.0);
             }
 
-            explicit UpdateWithAdpativeStepsizeParameters(int thermalization_langevin_time_interval_, double langevin_time_measure_interval_) :
+            explicit UpdateWithAdpativeStepsizeParameters(double thermalization_langevin_time_interval_, double langevin_time_measure_interval_) :
                     UpdateWithAdpativeStepsizeParameters(json {
                         {"thermalization_langevin_time_interval", thermalization_langevin_time_interval_},
                         {"langevin_time_measure_interval", langevin_time_measure_interval_}})
