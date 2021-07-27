@@ -55,6 +55,11 @@ namespace lm_impl {
                 normal = std::normal_distribution<double>(0, 1);
             }
 
+            double get_stepsize() const
+            {
+                return up.epsilon;
+            }
+
             template<typename T>
             T operator()(const T site) {
                 const T drift_term = model.get_drift_term(site);

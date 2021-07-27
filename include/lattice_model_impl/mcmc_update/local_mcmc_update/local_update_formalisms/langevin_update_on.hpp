@@ -57,6 +57,11 @@ namespace lm_impl {
                 normal = std::normal_distribution<double>(0, 1);
             }
 
+            double get_stepsize() const
+            {
+                return up.epsilon;
+            }
+
             template<typename T>
             T estimate_drift_term(const T site) {
                 return model.get_drift_term(site);
