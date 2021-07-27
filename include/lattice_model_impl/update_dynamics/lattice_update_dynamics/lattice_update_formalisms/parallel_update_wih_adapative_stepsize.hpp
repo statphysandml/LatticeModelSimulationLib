@@ -17,12 +17,14 @@ namespace lm_impl {
         struct ParallelUpdateWithAdpativeStepsizeParameters : UpdateDynamicsBaseParameters {
             explicit ParallelUpdateWithAdpativeStepsizeParameters(const json params_) : UpdateDynamicsBaseParameters(
                     params_) {
-                thermalization_steps = get_entry<int>("thermalization_steps", 2000);
+                thermalization_langevin_time_interval = get_entry<double>("thermalization_langevin_time_interval", 10.0);
+                langevin_time_measure_interval = get_entry<double>("langevin_time_measure_interval", 1.0);
             }
 
             explicit ParallelUpdateWithAdpativeStepsizeParameters(int thermalization_steps_) :
                     ParallelUpdateWithAdpativeStepsizeParameters(json {
-                            {"thermalization_steps", thermalization_steps_}})
+                            {"thermalization_langevin_time_interval", thermalization_langevin_time_interval_},
+                            {"langevin_time_measure_interval", langevin_time_measure_interval_}})
             {}
 
             static std::string name() {
@@ -31,7 +33,8 @@ namespace lm_impl {
 
             typedef ParallelUpdateWithAdpativeStepsize UpdateDynamics;
 
-            int thermalization_steps;
+            double thermalization_langevin_time_interval;
+            double langevin_time_measure_interval;
         };
 
         struct ParallelUpdateWithAdpativeStepsize : public UpdateDynamicsBase<ParallelUpdateWithAdpativeStepsize> {
@@ -55,7 +58,11 @@ namespace lm_impl {
             void thermalization_phase_with_adpative_stepsize(Lattice &lattice, uint measure_interval = 1) {
                 // static_assert(detail::is_updateable<T, typename UpdateFormalismParameters::MCMCUpdate>::value, "is not estimate_drift_term");
 
-                for (int k = 0; k < lp.thermalization_steps; k++) {
+                double max_epsilon = lattice.get_update_formalism().get_stepsize();
+                int n_thermalization_steps = int(lp.thermalization_langevin_time_interval / max_epsilon);
+                std::cout << "Perform " << n_thermalization_steps << " thermalization steps with a step width of " << max_epsilon << std::endl;
+
+                for (int k = 0; k < n_thermalization_steps; k++) {
 
                     double KMax = 0;
                     for (uint i = 0; i < lattice.size(); i++) {
@@ -81,36 +88,55 @@ namespace lm_impl {
                     lattice_grid = lattice_grid_new;
                 }
 
-                KExpectation /= lp.thermalization_steps;
+                KExpectation /= n_thermalization_steps;
                 thermalized = true;
             }
 
 
             template<typename Lattice>
             void parallel_update_with_adpative_stepsize(Lattice &lattice, uint measure_interval = 1) {
+                double max_epsilon = lattice.get_update_formalism().get_stepsize();
+
                 for (uint j = 0; j < measure_interval; j++) {
+                    uint break_out_counter = 0;
+                    while(langevin_time < lp.langevin_time_measure_interval and break_out_counter < 10000000) {
+                        double KMax = 0;
+                        for (uint i = 0; i < lattice.size(); i++) {
+                            const double K = std::fabs(
+                                    lattice.get_update_formalism().estimate_drift_term(lattice[i],
+                                                                                       lattice.neighbours_at(i)));
+                            if (K > KMax)
+                                KMax = K;
+                        }
 
-                    double KMax = 0;
-                    for (uint i = 0; i < lattice.size(); i++) {
-                        const double K = std::fabs(
-                                lattice.get_update_formalism().estimate_drift_term(lattice[i],
-                                                                                   lattice.neighbours_at(i)));
-                        if (K > KMax)
-                            KMax = K;
+                        double epsilon = std::min(max_epsilon, max_epsilon * KExpectation / KMax);
+
+                        std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.size(),
+                                                                                 typename Lattice::SiteType(0));
+
+                        // #pragma omp parallel for
+                        for (uint i = 0; i < lattice.size(); i++) {
+                            lattice_grid_new[i] = update_lattice_site(lattice.get_update_formalism(), lattice[i],
+                                                                      lattice.neighbours_at(i), epsilon);
+                        }
+
+                        // Rewrite?
+                        auto &lattice_grid = lattice.get_system_representation();
+                        lattice_grid = lattice_grid_new;
+
+                        langevin_time += epsilon;
+                        break_out_counter += 1;
                     }
 
-                    std::vector<typename Lattice::SiteType> lattice_grid_new(lattice.size(),
-                                                                             typename Lattice::SiteType(0));
+                    langevin_time -= lp.langevin_time_measure_interval;
 
-                    // #pragma omp parallel for
-                    for (uint i = 0; i < lattice.size(); i++) {
-                        lattice_grid_new[i] = update_lattice_site(lattice.get_update_formalism(), lattice[i],
-                                                                  lattice.neighbours_at(i), KMax, KExpectation);
+                    // std::cout << "Langevin time" << langevin_time << std::endl;
+
+                    if(break_out_counter == 10000000)
+                    {
+                        std::cout << "Too small stepsize, break_out_counter == 1000000 for one Langevin time step" << std::endl;
+                        std::exit(EXIT_FAILURE);
                     }
-
-                    // Rewrite?
-                    auto &lattice_grid = lattice.get_system_representation();
-                    lattice_grid = lattice_grid_new;
                 }
             }
 
@@ -119,6 +145,8 @@ namespace lm_impl {
             // For adaptive step size
             double KExpectation = 0;
             bool thermalized = 0;
+
+            double langevin_time = 0;
         };
 
     }

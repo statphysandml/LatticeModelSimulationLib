@@ -62,9 +62,7 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T operator()(const T site, const double KMax, const double KExpectation) {
-                double epsilon = std::min(up.epsilon, up.epsilon * KExpectation / KMax);
-
+            T operator()(const T site, const double epsilon) {
                 const T drift_term = model.get_drift_term(site);
                 return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::gen));
             }
@@ -76,10 +74,7 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T
-            operator()(const T site, const std::vector<T *> neighbours, const double KMax, const double KExpectation) {
-                double epsilon = std::min(up.epsilon, up.epsilon * KExpectation / KMax);
-
+            T operator()(const T site, const std::vector<T *> neighbours, const double epsilon) {
                 const T drift_term = model.get_drift_term(site, neighbours);
                 return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::gen));
             }

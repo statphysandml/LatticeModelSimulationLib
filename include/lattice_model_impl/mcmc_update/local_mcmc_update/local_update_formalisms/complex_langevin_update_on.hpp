@@ -79,17 +79,15 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T operator()(const T site, const double KMax, const double KExpectation) {
+            T operator()(const T site, const double epsilon) {
                 T eps_drift_term = model.get_drift_term(site);
-                double epsilon = std::min(up.epsilon, up.epsilon * KExpectation / KMax);
                 return update(site, eps_drift_term, epsilon, std::sqrt(2 * epsilon));
             }
 
             template<typename T>
             T
-            operator()(const T site, const std::vector<T *> neighbours, const double KMax, const double KExpectation) {
+            operator()(const T site, const std::vector<T *> neighbours, const double epsilon) {
                 T eps_drift_term = model.get_drift_term(site, neighbours);
-                double epsilon = std::min(up.epsilon, up.epsilon * KExpectation / KMax);
                 return update(site, eps_drift_term, epsilon, std::sqrt(2 * epsilon));
             }
 
