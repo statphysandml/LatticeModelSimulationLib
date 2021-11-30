@@ -1,0 +1,3 @@
+pybind11_add_module(latticemodelsimulationlib_python LatticeModelSimulationLib_python.cpp)
+target_link_libraries(latticemodelsimulationlib_python PUBLIC latticemodelsimulationlib)
+set_target_properties(latticemodelsimulationlib_python PROPERTIES OUTPUT_NAME latticemodelsimulationlib)

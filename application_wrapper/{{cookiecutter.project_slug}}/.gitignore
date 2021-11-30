@@ -30,7 +30,7 @@
 *.exe
 *.out
 *.app
-
+{% if cookiecutter.python_bindings %}
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -169,19 +169,4 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-# Customized
-
-*.aux
-*.log
-*.out
-*.synctex.gz
-*.toc
-*.pyc
-.idea/
-lib/
-libgpu/
-__pychache__/
-.idea/
-.ipynb_checkpoints/
-.vscode/
+{% endif %}

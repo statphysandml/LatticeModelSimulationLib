@@ -1,3 +1,6 @@
-[submodule "external_submodules/MCMCSimulationLib"]
-	path = external_submodules/MCMCSimulationLib
+[submodule "ext/MCMCSimulationLib"]
+	path = ext/MCMCSimulationLib
 	url = https://github.com/statphysandml/MCMCSimulationLib.git
+[submodule "examples"]
+	path = examples
+	url = https://github.com/statphysandml/LatticeModelImplementations.git
