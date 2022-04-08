@@ -120,7 +120,7 @@ namespace lm_impl {
                     const SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> &sp_)
                     : sp(sp_) {
                 model = std::make_unique<typename ModelParameters::Model>(*sp.model_parameters);
-                update_formalism = std::make_unique<typename UpdateFormalismParameters::MCMCUpdate>(
+                update_formalism = std::make_unique<typename UpdateFormalismParameters::MCMCMethod>(
                         *sp.update_parameters, *model);
                 site_update = std::make_unique<typename SiteUpdateFormalismParameters::UpdateDynamics>(
                         *sp.site_update_parameters);
@@ -209,9 +209,9 @@ namespace lm_impl {
                         SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(sp);
                 this->concat_measures(model_related_measures);
 
-                auto mcmc_update_related_measures = update_formalism->template generate_mcmc_update_measures<SiteSystem,
+                auto mcmc_method_related_measures = update_formalism->template generate_mcmc_method_measures<SiteSystem,
                         SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(sp);
-                this->concat_measures(mcmc_update_related_measures);
+                this->concat_measures(mcmc_method_related_measures);
 
                 auto site_update_related_measures = site_update->template generate_update_dynamics_measures<SiteSystem,
                         SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(sp);
@@ -254,12 +254,12 @@ namespace lm_impl {
             T site;
 
             std::unique_ptr<typename ModelParameters::Model> model;
-            std::unique_ptr<typename UpdateFormalismParameters::MCMCUpdate> update_formalism;
+            std::unique_ptr<typename UpdateFormalismParameters::MCMCMethod> update_formalism;
             std::unique_ptr<typename SiteUpdateFormalismParameters::UpdateDynamics> site_update;
 
             void initialize_site();
 
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SiteSystem>>>
+            std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSystem>>>
             generate_site_system_measures(const std::vector<std::string> &measure_names);
         };
 
@@ -279,11 +279,11 @@ namespace lm_impl {
 
 
         template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters>
-        std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>>>
+        std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>>>
         SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>::generate_site_system_measures(
                 const std::vector<std::string> &measure_names) {
             typedef SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> SiteSys;
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SiteSys>>> site_measures{};
+            std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSys>>> site_measures{};
             for (auto &measure_name :  measure_names)
                 if (measure_name == "Energy")
                     site_measures.push_back(std::make_unique<util::lattice_system_model_measures::MeasureEnergyPolicy<SiteSys>>());

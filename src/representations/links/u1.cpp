@@ -11,7 +11,7 @@ namespace lm_impl {
                 x_.push_back(std::complex<double>(1, 0));
             } else {
                 std::uniform_real_distribution<double> uniform(-1, 1);
-                x_.push_back(std::complex<double>(uniform(mcmc::util::gen), uniform(mcmc::util::gen)));
+                x_.push_back(std::complex<double>(uniform(mcmc::util::g_gen), uniform(mcmc::util::g_gen)));
                 x_[0] = x_[0] / std::abs(x_[0]);
             }
         }

@@ -6,11 +6,11 @@
 #define LATTICEMODELIMPLEMENTATIONS_COMPLEX_LANGEVIN_UPDATE_ON_HPP
 
 
-#include "../../mcmc_update_base.hpp"
+#include "../../mcmc_method_base.hpp"
 
 
 namespace lm_impl {
-    namespace mcmc_update {
+    namespace mcmc_method {
 
         struct ComplexONModelSampler;
 
@@ -19,9 +19,9 @@ namespace lm_impl {
 
 
         template<typename ModelParameters>
-        class ComplexLangevinUpdateONParameters : public MCMCUpdateBaseParameters {
+        class ComplexLangevinUpdateONParameters : public MCMCMethodBaseParameters {
         public:
-            explicit ComplexLangevinUpdateONParameters(const json params_) : MCMCUpdateBaseParameters(params_),
+            explicit ComplexLangevinUpdateONParameters(const json params_) : MCMCMethodBaseParameters(params_),
                                                                            epsilon(get_entry<double>("epsilon", eps)),
                                                                            sqrt2epsilon(sqrt(2 * get_entry<double>(
                                                                                    "epsilon", eps))) {}
@@ -37,7 +37,7 @@ namespace lm_impl {
                 return "ComplexLangevinUpdateON";
             }
 
-            typedef ComplexLangevinUpdateON<ModelParameters> MCMCUpdate;
+            typedef ComplexLangevinUpdateON<ModelParameters> MCMCMethod;
 
         private:
             friend class ComplexLangevinUpdateON<ModelParameters>;
@@ -49,11 +49,11 @@ namespace lm_impl {
 
         template<typename ModelParameters>
         class ComplexLangevinUpdateON
-                : public MCMCUpdateBase<ComplexLangevinUpdateON<ModelParameters>, ComplexONModelSampler> {
+                : public MCMCMethodBase<ComplexLangevinUpdateON<ModelParameters>, ComplexONModelSampler> {
         public:
             explicit ComplexLangevinUpdateON(const ComplexLangevinUpdateONParameters<ModelParameters> &up_,
                                            typename ModelParameters::Model &model_)
-                    : MCMCUpdateBase<ComplexLangevinUpdateON<ModelParameters>, ComplexONModelSampler>(up_.eps), up(up_),
+                    : MCMCMethodBase<ComplexLangevinUpdateON<ModelParameters>, ComplexONModelSampler>(up_.eps), up(up_),
                       model(model_) {
                 normal = std::normal_distribution<double>(0, 1);
             }
@@ -107,7 +107,7 @@ namespace lm_impl {
             T update(const T site, const T drift_term, const double &epsilon, const double &sqrt2epsilon) {
                 T new_site(0);
                 for(uint i = 0; i < new_site.dim(); i++) {
-                    new_site(i).real(site(i).real() - epsilon * drift_term(i).real() + sqrt2epsilon * normal(mcmc::util::gen));
+                    new_site(i).real(site(i).real() - epsilon * drift_term(i).real() + sqrt2epsilon * normal(mcmc::util::g_gen));
                     new_site(i).imag(site(i).imag() - epsilon * drift_term(i).imag());
                 }
                 return model.normalize(new_site);
@@ -125,7 +125,7 @@ namespace lm_impl {
             T random_state() {
                 T new_site(0);
                 for(uint i = 0; i < new_site.dim(); i++)
-                    new_site(i) += std::sqrt(2 * eps) * normal(mcmc::util::gen);
+                    new_site(i) += std::sqrt(2 * eps) * normal(mcmc::util::g_gen);
                 return new_site;
             }
 

@@ -36,10 +36,10 @@ namespace lm_impl {
             }
 
             template<typename SB, typename SBP>
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>>
+            std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>
             generate_model_measures(const SBP &system_parameters) {
                 // auto measure_names = system_parameters.get_measures();
-                return std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>>{};
+                return std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>{};
             }
 
             template<typename func>

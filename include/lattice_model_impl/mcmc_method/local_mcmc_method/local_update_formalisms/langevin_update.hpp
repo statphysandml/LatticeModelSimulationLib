@@ -6,20 +6,20 @@
 #define MAIN_LANGEVIN_UPDATE_HPP
 
 
-#include "../../mcmc_update_base.hpp"
+#include "../../mcmc_method_base.hpp"
 
 
 namespace lm_impl {
-    namespace mcmc_update {
+    namespace mcmc_method {
 
         template<typename ModelParameters, typename SamplerCl>
         class LangevinUpdate;
 
 
         template<typename ModelParameters, typename SamplerCl>
-        class LangevinUpdateParameters : public MCMCUpdateBaseParameters {
+        class LangevinUpdateParameters : public MCMCMethodBaseParameters {
         public:
-            explicit LangevinUpdateParameters(const json params_) : MCMCUpdateBaseParameters(params_),
+            explicit LangevinUpdateParameters(const json params_) : MCMCMethodBaseParameters(params_),
                                                                     epsilon(get_entry<double>("epsilon")),
                                                                     sqrt2epsilon(
                                                                             sqrt(2 * get_entry<double>("epsilon"))) {}
@@ -35,7 +35,7 @@ namespace lm_impl {
                 return "LangevinUpdate";
             }
 
-            typedef LangevinUpdate<ModelParameters, SamplerCl> MCMCUpdate;
+            typedef LangevinUpdate<ModelParameters, SamplerCl> MCMCMethod;
 
         protected:
             friend class LangevinUpdate<ModelParameters, SamplerCl>;
@@ -46,11 +46,11 @@ namespace lm_impl {
 
 
         template<typename ModelParameters, typename SamplerCl>
-        class LangevinUpdate : public MCMCUpdateBase<LangevinUpdate<ModelParameters, SamplerCl>, SamplerCl> {
+        class LangevinUpdate : public MCMCMethodBase<LangevinUpdate<ModelParameters, SamplerCl>, SamplerCl> {
         public:
             explicit LangevinUpdate(const LangevinUpdateParameters<ModelParameters, SamplerCl> &up_,
                                     typename ModelParameters::Model &model_) :
-                    MCMCUpdateBase<LangevinUpdate<ModelParameters, SamplerCl>, SamplerCl>(up_.eps), up(up_),
+                    MCMCMethodBase<LangevinUpdate<ModelParameters, SamplerCl>, SamplerCl>(up_.eps), up(up_),
                     model(model_) {
                 normal = std::normal_distribution<double>(0, 1);
             }
@@ -63,25 +63,25 @@ namespace lm_impl {
             template<typename T>
             T operator()(const T site) {
                 const T drift_term = model.get_drift_term(site);
-                return model.normalize(site - up.epsilon * drift_term + up.sqrt2epsilon * normal(mcmc::util::gen));
+                return model.normalize(site - up.epsilon * drift_term + up.sqrt2epsilon * normal(mcmc::util::g_gen));
             }
 
             template<typename T>
             T operator()(const T site, const double epsilon) {
                 const T drift_term = model.get_drift_term(site);
-                return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::gen));
+                return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::g_gen));
             }
 
             template<typename T>
             T operator()(const T site, const std::vector<T *> neighbours) {
                 const T drift_term = model.get_drift_term(site, neighbours);
-                return model.normalize(site - up.epsilon * drift_term + up.sqrt2epsilon * normal(mcmc::util::gen));
+                return model.normalize(site - up.epsilon * drift_term + up.sqrt2epsilon * normal(mcmc::util::g_gen));
             }
 
             template<typename T>
             T operator()(const T site, const std::vector<T *> neighbours, const double epsilon) {
                 const T drift_term = model.get_drift_term(site, neighbours);
-                return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::gen));
+                return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::g_gen));
             }
 
         protected:

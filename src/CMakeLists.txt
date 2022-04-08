@@ -1,9 +1,12 @@
 add_library(latticemodelsimulationlib STATIC
   representations/links/u1.cpp
+  sampler/gaussian_sampler.cpp
+  sampler/hat_function_sampler.cpp
+  sampler/uniform_sampler.cpp
 )
 
 if (RUN_WITH_PYTHON_BACKEND)
-  target_compile_definitions(latticemodelsimulationlib PUBLIC RUN_WITH_PYTHON_BACKEND)
+  target_compile_definitions(latticemodelsimulationlib PUBLIC PYTHON_BACKEND)
   target_link_libraries(latticemodelsimulationlib PRIVATE ${target_link_libraries_python_appendix})
 endif()
 

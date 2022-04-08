@@ -133,7 +133,7 @@ namespace lm_impl {
             T random_state() {
                 T new_site(0);
                 for(uint i = 0; i < new_site.dim(); i++)
-                    new_site(i) += std::sqrt(2 * eps) * normal(mcmc::util::gen);
+                    new_site(i) += std::sqrt(2 * eps) * normal(mcmc::util::g_gen);
                 return new_site;
             }
 

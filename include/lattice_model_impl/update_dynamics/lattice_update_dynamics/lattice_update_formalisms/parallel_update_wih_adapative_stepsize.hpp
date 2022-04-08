@@ -56,7 +56,7 @@ namespace lm_impl {
 
             template<typename Lattice>
             void thermalization_phase_with_adpative_stepsize(Lattice &lattice, uint measure_interval = 1) {
-                // static_assert(detail::is_updateable<T, typename UpdateFormalismParameters::MCMCUpdate>::value, "is not estimate_drift_term");
+                // static_assert(detail::is_updateable<T, typename UpdateFormalismParameters::MCMCMethod>::value, "is not estimate_drift_term");
 
                 double max_epsilon = lattice.get_update_formalism().get_stepsize();
                 int n_thermalization_steps = int(lp.thermalization_langevin_time_interval / max_epsilon);

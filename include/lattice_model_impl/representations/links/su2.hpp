@@ -58,11 +58,11 @@ namespace lm_impl {
             // ( proposal state according to equation (4.30))
             std::uniform_real_distribution<double> distribution(-0.5, 0.5);
 
-            x_.push_back(sgn(distribution(mcmc::util::gen)) * sqrt(1 - epsilon * epsilon));
+            x_.push_back(sgn(distribution(mcmc::util::g_gen)) * sqrt(1 - epsilon * epsilon));
 
             double length = 0;
             for (auto i = 1; i < 4; i++) {
-                x_.push_back(distribution(mcmc::util::gen));
+                x_.push_back(distribution(mcmc::util::g_gen));
                 length += x_[i] * x_[i];
             }
             length = sqrt(length);
@@ -88,7 +88,7 @@ namespace lm_impl {
                     x_.clear();
                     length = 0;
                     for (int i = 0; i < 4; i++) {
-                        x_.push_back(distribution(mcmc::util::gen));
+                        x_.push_back(distribution(mcmc::util::g_gen));
                         length += x_[i] * x_[i];
                     }
                     length = sqrt(length);
@@ -115,9 +115,9 @@ namespace lm_impl {
                 double x1, x2, x3;
                 double length_r;
                 while (true) {
-                    x1 = distribution(mcmc::util::gen);
-                    x2 = distribution(mcmc::util::gen);
-                    x3 = distribution(mcmc::util::gen);
+                    x1 = distribution(mcmc::util::g_gen);
+                    x2 = distribution(mcmc::util::g_gen);
+                    x3 = distribution(mcmc::util::g_gen);
                     length_r = sqrt(x1 * x1 + x2 * x2 + x3 * x3);
                     if (length_r <= 1)
                         break;

@@ -7,20 +7,20 @@
 
 #include "mcmc_simulation/measure_policy.hpp"
 #include "../../site/site.hpp"
-#include "../../mcmc_update/dummy_mcmc_update.hpp"
+#include "../../mcmc_method/dummy_mcmc_method.hpp"
 #include "../../update_dynamics/dummy_update_dynamics.hpp"
 
 namespace lm_impl {
     namespace util {
         namespace complex_monte_carlo_measures {
             template<typename SB>
-            struct MeasureDetailedBalanceAccuracyPolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureDetailedBalanceAccuracyPolicy : public mcmc::measures::Measure<SB> {
             public:
                 explicit MeasureDetailedBalanceAccuracyPolicy(const json &system_repr_params_,
                                                               const typename SB::SiteType &prev_site_) :
                         prev_site(prev_site_), system_repr(
-                        site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_update::DummyMCMCUpdateParameters, update_dynamics::DummyUpdateDynamicsParameters>::from_json(
-                                json{{"mcmc_update_params", {{"eps", 0.0}}},
+                        site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_method::DummyMCMCMethodParameters, update_dynamics::DummyUpdateDynamicsParameters>::from_json(
+                                json{{"mcmc_method_params", {{"eps", 0.0}}},
                                      {"model_params_path",  system_repr_params_["model_params_path"]}})) {}
 
                 std::string measure(const SB &system) override {
@@ -40,17 +40,17 @@ namespace lm_impl {
                 }
 
                 const typename SB::SiteType &prev_site;
-                site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_update::DummyMCMCUpdateParameters, update_dynamics::DummyUpdateDynamicsParameters> system_repr;
+                site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_method::DummyMCMCMethodParameters, update_dynamics::DummyUpdateDynamicsParameters> system_repr;
             };
 
             template<typename SB>
-            struct MeasureAbsoluteDetailedBalanceAccuracyPolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureAbsoluteDetailedBalanceAccuracyPolicy : public mcmc::measures::Measure<SB> {
             public:
                 explicit MeasureAbsoluteDetailedBalanceAccuracyPolicy(const json &system_repr_params_,
                                                                       const typename SB::SiteType &prev_site_) :
                         prev_site(prev_site_), system_repr(
-                        site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_update::DummyMCMCUpdateParameters, update_dynamics::DummyUpdateDynamicsParameters>::from_json(
-                                json{{"mcmc_update_params", {{"eps", 0.0}}},
+                        site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_method::DummyMCMCMethodParameters, update_dynamics::DummyUpdateDynamicsParameters>::from_json(
+                                json{{"mcmc_method_params", {{"eps", 0.0}}},
                                      {"model_params_path",  system_repr_params_["model_params_path"]}})) {}
 
                 std::string measure(const SB &system) override {
@@ -70,11 +70,11 @@ namespace lm_impl {
                 }
 
                 const typename SB::SiteType &prev_site;
-                site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_update::DummyMCMCUpdateParameters, update_dynamics::DummyUpdateDynamicsParameters> system_repr;
+                site_system::SiteSystem<typename SB::SiteType, typename SB::ModelType, mcmc_method::DummyMCMCMethodParameters, update_dynamics::DummyUpdateDynamicsParameters> system_repr;
             };
 
             template<typename SB>
-            struct MeasureRealStepSizePolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureRealStepSizePolicy : public mcmc::measures::Measure<SB> {
             public:
                 explicit MeasureRealStepSizePolicy(typename SB::SiteType &prev_site_) :
                         prev_site(prev_site_) {}
@@ -91,7 +91,7 @@ namespace lm_impl {
             };
 
             template<typename SB>
-            struct MeasureImagStepSizePolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureImagStepSizePolicy : public mcmc::measures::Measure<SB> {
             public:
                 explicit MeasureImagStepSizePolicy(typename SB::SiteType &prev_site_) :
                         prev_site(prev_site_) {}
@@ -108,7 +108,7 @@ namespace lm_impl {
             };
 
             template<typename SB>
-            struct MeasureComplexStepSizePolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureComplexStepSizePolicy : public mcmc::measures::Measure<SB> {
             public:
                 explicit MeasureComplexStepSizePolicy(typename SB::SiteType &prev_site_) :
                         prev_site(prev_site_) {}

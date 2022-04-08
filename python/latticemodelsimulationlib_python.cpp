@@ -4,9 +4,6 @@
 
 #include <iostream>
 
-#include "config.h"
-
-// #include "LatticeModelSimulationLib/LatticeModelSimulationLib.hpp"
 
 namespace py = pybind11;
 using namespace pybind11::literals;
@@ -19,7 +16,7 @@ using namespace pybind11::literals;
 #include <execution/executer.hpp>
 
 #include <lattice_model_impl/update_dynamics/update_dynamics_header.hpp>
-#include <lattice_model_impl/mcmc_update/mcmc_update_header.hpp>
+#include <lattice_model_impl/mcmc_method/mcmc_method_header.hpp>
 
 #include <lattice_model_impl/site/site_header.hpp>
 #include <lattice_model_impl/lattice/lattice_header.hpp>
@@ -50,7 +47,7 @@ void init_lattice_models(py::module &m)
 void init_ising_model(py::module &m)
 {
     // MCMC Update Formalism
-    typedef mcmc_update::MetropolisUpdateParameters<lattice_system::IsingModelParameters, lattice_system::IsingModelSampler> IsingModelMetropolisParameters;
+    typedef mcmc_method::MetropolisUpdateParameters<lattice_system::IsingModelParameters, lattice_system::IsingModelSampler> IsingModelMetropolisParameters;
     py::class_<IsingModelMetropolisParameters>(m, "IsingModelMetropolisParameters")
         .def(py::init<double>(), "eps"_a=0);
         // .def_readonly("eps", &IsingModelMetropolisParameters::eps);
@@ -66,7 +63,7 @@ void init_ising_model(py::module &m)
                 const std::vector<int>&,
                 const std::string&,
                 const std::vector<std::string>&>(&IsingModelMetropolisLatticeParameters::generate_parameters),
-            "model_parameters"_a, "mcmc_update_parameters"_a, "latice_update_parameters"_a, "dimensions"_a=std::vector<int>{4, 4}, "lattice_action_type"_a="nearest_neighbour", "measures"_a=std::vector<std::string>{})
+            "model_parameters"_a, "mcmc_method_parameters"_a, "latice_update_parameters"_a, "dimensions"_a=std::vector<int>{4, 4}, "lattice_action_type"_a="nearest_neighbour", "measures"_a=std::vector<std::string>{})
         .def_readonly("dimensions", &IsingModelMetropolisLatticeParameters::dimensions)
         .def_readonly("lattice_action_type", &IsingModelMetropolisLatticeParameters::lattice_action_type);
         // .def("update_measures", &IsingModelMetropolisLatticeParameters::update_measures, "measures"_a);

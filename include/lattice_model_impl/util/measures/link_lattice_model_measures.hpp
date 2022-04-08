@@ -15,7 +15,7 @@ namespace lm_impl {
     namespace util {
         namespace link_lattice_system_model_measures {
             template<typename SB>
-            struct MeasurePolyakovLoopPolicy: public mcmc::common_measures::MeasurePolicy< SB > {
+            struct MeasurePolyakovLoopPolicy: public mcmc::measures::Measure< SB > {
             public:
                 MeasurePolyakovLoopPolicy(const std::vector<int> dimensions_, const uint elem_per_site_) : dimensions(dimensions_), elem_per_site(elem_per_site_)
                 {}
@@ -43,7 +43,7 @@ namespace lm_impl {
             };
 
             template<typename SB>
-            struct MeasureAveragePlaquetteActionPolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureAveragePlaquetteActionPolicy : public mcmc::measures::Measure<SB> {
             public:
                 MeasureAveragePlaquetteActionPolicy(const int dimension_) :
                     n_plaquettes_per_link(dimension_ - 1) // Only in positive direction, since energy also computed only in positive direction

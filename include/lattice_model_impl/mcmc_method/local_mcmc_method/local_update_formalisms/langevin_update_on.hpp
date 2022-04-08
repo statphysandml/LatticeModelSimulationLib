@@ -6,21 +6,21 @@
 #define LATTICEMODELSIMULATIONLIB_LANGEVIN_UPDATE_ON_HPP
 
 
-#include "../../mcmc_update_base.hpp"
+#include "../../mcmc_method_base.hpp"
 #include "../../../lattice/lattice_models/on_model.hpp"
 
 
 namespace lm_impl {
-    namespace mcmc_update {
+    namespace mcmc_method {
 
         template<typename ModelParameters>
         class LangevinUpdateON;
 
 
         template<typename ModelParameters>
-        class LangevinUpdateONParameters : public MCMCUpdateBaseParameters {
+        class LangevinUpdateONParameters : public MCMCMethodBaseParameters {
         public:
-            explicit LangevinUpdateONParameters(const json params_) : MCMCUpdateBaseParameters(params_),
+            explicit LangevinUpdateONParameters(const json params_) : MCMCMethodBaseParameters(params_),
                                                                              epsilon(get_entry<double>("epsilon", eps)),
                                                                              sqrt2epsilon(sqrt(2 * get_entry<double>(
                                                                                      "epsilon", eps))) {}
@@ -36,7 +36,7 @@ namespace lm_impl {
                 return "LangevinUpdateON";
             }
 
-            typedef LangevinUpdateON<ModelParameters> MCMCUpdate;
+            typedef LangevinUpdateON<ModelParameters> MCMCMethod;
 
         private:
             friend class LangevinUpdateON<ModelParameters>;
@@ -48,11 +48,11 @@ namespace lm_impl {
 
         template<typename ModelParameters>
         class LangevinUpdateON
-                : public MCMCUpdateBase<LangevinUpdateON<ModelParameters>, lm_impl::lattice_system::ONModelSampler> {
+                : public MCMCMethodBase<LangevinUpdateON<ModelParameters>, lm_impl::lattice_system::ONModelSampler> {
         public:
             explicit LangevinUpdateON(const LangevinUpdateONParameters<ModelParameters> &up_,
                                              typename ModelParameters::Model &model_)
-                    : MCMCUpdateBase<LangevinUpdateON<ModelParameters>, lm_impl::lattice_system::ONModelSampler>(up_.eps), up(up_),
+                    : MCMCMethodBase<LangevinUpdateON<ModelParameters>, lm_impl::lattice_system::ONModelSampler>(up_.eps), up(up_),
                       model(model_) {
                 normal = std::normal_distribution<double>(0, 1);
             }
@@ -106,7 +106,7 @@ namespace lm_impl {
             T update(const T site, const T drift_term, const double &epsilon, const double &sqrt2epsilon) {
                 T new_site(0);
                 for(uint i = 0; i < new_site.dim(); i++) {
-                    new_site(i) = site(i) - epsilon * drift_term(i) + sqrt2epsilon * normal(mcmc::util::gen);
+                    new_site(i) = site(i) - epsilon * drift_term(i) + sqrt2epsilon * normal(mcmc::util::g_gen);
                 }
                 return model.normalize(new_site);
             }

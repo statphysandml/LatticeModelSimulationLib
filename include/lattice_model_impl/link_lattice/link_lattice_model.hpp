@@ -23,10 +23,10 @@ namespace lm_impl {
         {
         public:
             template<typename SB, typename SBP>
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>>
+            std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>
             generate_model_measures(const SBP &system_parameters) {
                 auto measure_names = system_parameters.get_measures();
-                std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>> link_lattice_measures{};
+                std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>> link_lattice_measures{};
                 for (auto &measure_name :  measure_names)
                     if (measure_name == "PolyakovLoop")
                         link_lattice_measures.push_back(std::make_unique<util::link_lattice_system_model_measures::MeasurePolyakovLoopPolicy<SB>>(

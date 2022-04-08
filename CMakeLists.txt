@@ -7,7 +7,7 @@ project(LatticeModelSimulationLib VERSION 0.0.1 LANGUAGES CXX)
 include(GNUInstallDirs)
 
 # Define the minimum C++ standard that is required
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -25,7 +25,7 @@ set(CONDA_ACTIVATE_PATH "None" CACHE STRING "Path to conda activate path-to-cond
 find_package(Git QUIET)
 if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 # Update submodules as needed
-    option(GIT_SUBMODULE "Check submodules during build" OFF)
+    option(GIT_SUBMODULE "Check submodules during build" ON)
     if(GIT_SUBMODULE)
         message(STATUS "Submodule update")
         execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
@@ -42,7 +42,7 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ext/MCMCSimulationLib/CMakeLists.txt")
 endif()
 
 
-configure_file(./ext/MCMCSimulationLib/include/execution/config.h.in ../ext/MCMCSimulationLib/include/execution/config.h @ONLY)
+# configure_file(./ext/MCMCSimulationLib/include/cluster_support/config.h.in ../# ext/MCMCSimulationLib/include/execution/config.h @ONLY)
 
 # Boost
 FIND_PACKAGE( Boost 1.67 REQUIRED COMPONENTS filesystem)
@@ -53,7 +53,7 @@ endif()
 
 # Compilation options
 
-# compile the external submodule
+# compile external submodules
 add_subdirectory(ext/MCMCSimulationLib)
 include_directories(ext/MCMCSimulationLib/ext/ParamHelper/include/)
 include_directories(ext/MCMCSimulationLib/include)
@@ -69,7 +69,7 @@ endif()
 
 if(BUILD_PYTHON_BINDINGS)
     # Python virtual environment
-    add_subdirectory(python)
+    # add_subdirectory(python)
 endif()
 
 

@@ -50,11 +50,11 @@ namespace lm_impl {
             }
 
             template<typename SB, typename SBP>
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>>
+            std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>
             generate_update_dynamics_measures(const SBP &system_parameters) {
                 auto measure_names = system_parameters.get_measures();
 
-                std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>> measures{};
+                std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>> measures{};
                 for (auto &measure_name :  measure_names)
                     if (measure_name == "DetailedBalanceAccuracy")
                         measures.push_back(
