@@ -16,7 +16,7 @@ namespace lm_impl
 
         class IsingModel;
 
-        class IsingModelParameters : public LatticeModelParameters {
+        struct IsingModelParameters : public LatticeModelParameters {
         public:
             explicit IsingModelParameters(const json params_) : LatticeModelParameters(params_),
                                                                 beta(get_entry<double>("beta", 0.4)),
@@ -39,8 +39,8 @@ namespace lm_impl
 
             typedef IsingModel Model;
 
-        private:
-            friend class IsingModel;
+//        public:
+//             friend class IsingModel;
 
             const double beta;
             const double J;
@@ -80,9 +80,14 @@ namespace lm_impl
 
         struct IsingModelSampler //  : public Sampler
         {
-            IsingModelSampler(const double eps_)
+            IsingModelSampler(const double eps_=0)
             {
                 uniint = std::uniform_int_distribution<int>(0, 1);
+            }
+
+            template<typename T>
+            T cold_state() {
+                return 1;
             }
 
             template<typename T>

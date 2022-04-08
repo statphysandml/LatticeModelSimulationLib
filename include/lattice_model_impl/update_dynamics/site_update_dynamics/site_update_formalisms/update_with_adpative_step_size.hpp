@@ -78,22 +78,19 @@ namespace lm_impl {
                         const double KMax = std::fabs(site.get_update_formalism().estimate_drift_term(site.get_system_representation()));
                         double epsilon = std::min(max_epsilon, max_epsilon * KExpectation / KMax);
                         if(epsilon > 1.0) {
-                            std::cout << "Detected epsilon > 1 in adaptive stepsize" << std::endl;
+                            std::cerr << "Detected epsilon > 1 in adaptive stepsize" << std::endl;
                             std::exit(EXIT_FAILURE);
                         }
                         site.get_system_representation() = update_lattice_site(site.get_update_formalism(),
                                                                                site.get_system_representation(), epsilon);
                         langevin_time += epsilon;
                         break_out_counter += 1;
-                        // std::cout << "Epsilon " << epsilon << std::endl;
                     }
                     langevin_time -= sp.langevin_time_measure_interval;
 
-                    // std::cout << "Langevin time" << langevin_time << std::endl;
-
                     if(break_out_counter == 10000000)
                     {
-                        std::cout << "Too small stepsize, break_out_counter == 1000000 for one Langevin time step" << std::endl;
+                        std::cerr << "Too small stepsize, break_out_counter == 1000000 for one Langevin time step" << std::endl;
                         std::exit(EXIT_FAILURE);
                     }
                 }

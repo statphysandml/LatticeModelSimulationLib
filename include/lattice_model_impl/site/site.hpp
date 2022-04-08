@@ -41,14 +41,12 @@ namespace lm_impl {
                     model_parameters(std::move(site_parameters.model_parameters)),
                     update_parameters(std::move(site_parameters.update_parameters)),
                     site_update_parameters(std::move(
-                            site_parameters.site_update_parameters)) { /* std::cout << "Move cosntructor is called" << std::endl;*/ }
+                            site_parameters.site_update_parameters)) {}
 
             // Move assignment
             SiteParameters &operator=(
                     SiteParameters &site_parameters) // Changed on my own from no & to && (from DevDat other to &&other)
             {
-
-                // std::cout << "Move assignment operator is called" << std::endl;
                 using std::swap;
                 swap(measures, site_parameters.measures);
                 model_parameters = std::move(site_parameters.model_parameters);
@@ -147,14 +145,12 @@ namespace lm_impl {
                     model(std::move(site_system.model)),
                     update_formalism(std::move(site_system.update_formalism)),
                     site_update(std::move(
-                            site_system.site_update)) {
-                /* std::cout << "Move cosntructor is called" << std::endl; */ }
+                            site_system.site_update)) {}
 
             // Move assignment
             SiteSystem &
             operator=(SiteSystem &site_system) // Changed on my own from no & to && (from DevDat other to &&other)
             {
-                // std::cout << "Move assignment operator is called" << std::endl;
                 using std::swap;
                 swap(sp, site_system.sp);
                 swap(site, site_system.site);
@@ -205,7 +201,7 @@ namespace lm_impl {
                 return site;
             }
 
-            void generate_measures(const json &measure_names) override {
+            void generate_measures(const std::vector<std::string> &measure_names) override {
                 auto lattice_related_measures = generate_site_system_measures(sp.measures);
                 this->concat_measures(lattice_related_measures);
 
@@ -264,7 +260,7 @@ namespace lm_impl {
             void initialize_site();
 
             std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SiteSystem>>>
-            generate_site_system_measures(const json &measure_names);
+            generate_site_system_measures(const std::vector<std::string> &measure_names);
         };
 
 
@@ -285,7 +281,7 @@ namespace lm_impl {
         template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters>
         std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>>>
         SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>::generate_site_system_measures(
-                const json &measure_names) {
+                const std::vector<std::string> &measure_names) {
             typedef SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> SiteSys;
             std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SiteSys>>> site_measures{};
             for (auto &measure_name :  measure_names)

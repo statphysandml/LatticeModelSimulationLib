@@ -49,6 +49,27 @@ namespace lm_impl {
                         mcmc::util::generate_parameter_class_json<LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>, LatticeUpdateFormalismParameters>(
                                 *this, lattice_update_parameters->param_file_name()));
             }
+            
+            static LatticeParameters generate_parameters(
+                    ModelParameters& model_parameters_,
+                    UpdateFormalismParameters& mcmc_update_parameters_,
+                    LatticeUpdateFormalismParameters& lattice_update_parameters_,
+                    const std::vector<int>& dimensions_=std::vector<int> {4, 4},
+                    const std::string& lattice_action_type_="nearest_neighbour",
+                    const std::vector<std::string>& measures_=std::vector<std::string> {}
+            )
+            {
+                return LatticeParameters(
+                        json {
+                            {ModelParameters::param_file_name(), model_parameters_.get_json()},
+                            {UpdateFormalismParameters::param_file_name(), mcmc_update_parameters_.get_json()},
+                            {LatticeUpdateFormalismParameters::param_file_name(), lattice_update_parameters_.get_json()},
+                            {"dimensions", dimensions_},
+                            {"lattice_action_type", lattice_action_type_},
+                            {"measures", measures_}
+                        }
+                );
+            }
 
             typedef LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> System;
 
@@ -116,6 +137,9 @@ namespace lm_impl {
             typedef ModelParameters MP_;
             typedef UpdateFormalismParameters UP_;
 
+            std::vector<int> dimensions; // Different dimensions
+            std::string lattice_action_type;
+
         protected:
             template<typename, typename, typename, typename>
             friend
@@ -127,12 +151,10 @@ namespace lm_impl {
 
             uint n_sites; // Total number of sites
             uint size; // Total number of elements on lattice
-            std::vector<int> dimensions; // Different dimensions
+            
             std::vector<int> dim_mul; // Accumulated different dimensions (by product)
             int dimension; // Number of dimensions
             uint elem_per_site; // Number of elements per site (is equal to dimension), but only for the link model
-
-            std::string lattice_action_type;
         };
 
 
@@ -168,7 +190,12 @@ namespace lm_impl {
                 // Needs to be called at the end so that generated objects (dynamics, model, etc.) can already be used!
                 this->generate_measures(lp.measures);
 
-                std::cout << "Note : Cold start not possible, so far" << std::endl;
+                if(starting_mode == "hot")
+                    for (auto &site : lattice)
+                        site = update_formalism->template random_state<T>();
+                else // starting_mode == "cold"
+                    for (auto &site : lattice)
+                        site = update_formalism->template cold_state<T>();
             }
 
             // Returns the total number of elements of the lattice - (equals the total number of sites if elem_per_site=1)
@@ -212,7 +239,7 @@ namespace lm_impl {
                 return neighbours;
             }
 
-            void generate_measures(const json &measure_names) override {
+            void generate_measures(const std::vector<std::string> &measure_names) override {
                 auto lattice_related_measures = generate_lattice_system_measures(lp.measures);
                 this->concat_measures(lattice_related_measures);
 
@@ -245,7 +272,7 @@ namespace lm_impl {
             }
 
             auto drift_term() const {
-                std::cout << "Drift term computation needs to be implemented here" << std::endl;
+                std::cerr << "Drift term computation needs to be implemented here" << std::endl;
                 std::exit(EXIT_FAILURE);
                 decltype(model->get_potential(lattice[0], neighbours[0])) drift_term(0);
                 for (uint i = 0; i < get_size(); i++) {
@@ -261,10 +288,12 @@ namespace lm_impl {
             }
 
             typedef T SiteType;
+
+            std::vector<T> lattice;
+
         protected:
             const LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> &lp;
 
-            std::vector<T> lattice;
             std::vector<std::vector<T *> > neighbours;
 
             std::unique_ptr<typename ModelParameters::Model> model;
@@ -280,7 +309,7 @@ namespace lm_impl {
             void set_plaquette_neighbours();
 
             std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<LatticeSystem>>>
-            generate_lattice_system_measures(const json &measure_names);
+            generate_lattice_system_measures(const std::vector<std::string> &measure_names);
         };
 
 
@@ -288,8 +317,6 @@ namespace lm_impl {
         void
         LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::initialize_lattice() {
             lattice = std::vector<T>(get_size(), T(0));
-            for (auto &site : lattice)
-                site = update_formalism->template random_state<T>();
         }
 
 
@@ -381,7 +408,7 @@ namespace lm_impl {
         template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
         std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>>>>
         LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::generate_lattice_system_measures(
-                const json &measure_names) {
+                const std::vector<std::string> &measure_names) {
             typedef LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> LatSys;
             std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<LatSys>>> lattice_measures{};
             for (auto &measure_name :  measure_names)

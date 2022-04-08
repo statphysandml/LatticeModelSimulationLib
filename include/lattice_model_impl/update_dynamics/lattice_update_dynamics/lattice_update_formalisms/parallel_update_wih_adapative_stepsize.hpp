@@ -130,11 +130,9 @@ namespace lm_impl {
 
                     langevin_time -= lp.langevin_time_measure_interval;
 
-                    // std::cout << "Langevin time" << langevin_time << std::endl;
-
                     if(break_out_counter == 10000000)
                     {
-                        std::cout << "Too small stepsize, break_out_counter == 1000000 for one Langevin time step" << std::endl;
+                        std::cerr << "Too small stepsize, break_out_counter == 1000000 for one Langevin time step" << std::endl;
                         std::exit(EXIT_FAILURE);
                     }
                 }

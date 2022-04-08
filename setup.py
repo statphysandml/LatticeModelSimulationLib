@@ -3,7 +3,7 @@ import sys
 import platform
 import subprocess
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 
 
@@ -53,14 +53,14 @@ class CMakeBuild(build_ext):
         if not os.path.exists(self.build_temp):
             os.makedirs(self.build_temp)
         subprocess.check_call(['cmake', ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-        subprocess.check_call(['cmake', '--build', '.', '--target', 'LatticeModelSimulationLib_python'] + build_args, cwd=self.build_temp)
+        subprocess.check_call(['cmake', '--build', '.', '--target', 'latticemodelsimulationlib_python'] + build_args, cwd=self.build_temp)
 
 
 setup(
-    name='LatticeModelSimulationLib',
+    name='LatticeModelImpl',
     version='0.0.1',
     author='Lukas Kades',
-    author_email='your@email.com',
+    author_email='statphysandml@thphys.uni-heidelberg.de',
     description='Add description here',
     long_description='',
     ext_modules=[CMakeExtension('LatticeModelSimulationLib')],
@@ -71,4 +71,10 @@ setup(
         "Operating System :: OS Independent",
         "License :: OSI Approved :: MIT License",
     ],
+    packages=[
+        'latticemodels']
+    # url='https://github.com/statphysandml/MCMCEvaluationLib',
+    # package_dir={"ab": "python"},
+    # packages=["ab",
+    #     "ab.latticemodels"] # find_packages(where="python"),
 )

@@ -49,7 +49,7 @@ namespace lm_impl {
 
             template<typename T>
             T cold_state() {
-                return T(0);
+                return sampler.template cold_state<T>();
             };
 
             template<typename SB, typename SBP>
