@@ -1,96 +1,22 @@
-//
-// Created by lukas on 10.10.19.
-//
-
 #ifndef MAIN_LANGEVIN_UPDATE_HPP
 #define MAIN_LANGEVIN_UPDATE_HPP
 
 
-#include "../../mcmc_method_base.hpp"
+#include "langevin_update_base.hpp"
 
 
 namespace lm_impl {
     namespace mcmc_method {
-
-        template<typename ModelParameters, typename SamplerCl>
-        class LangevinUpdate;
-
-
-        template<typename ModelParameters, typename SamplerCl>
-        class LangevinUpdateParameters : public MCMCMethodBaseParameters {
+        template<typename Model>
+        class LangevinUpdate : public LangevinUpdateBase<LangevinUpdate<Model>, Model> {
         public:
-            explicit LangevinUpdateParameters(const json params_) : MCMCMethodBaseParameters(params_),
-                                                                    epsilon(get_entry<double>("epsilon")),
-                                                                    sqrt2epsilon(
-                                                                            sqrt(2 * get_entry<double>("epsilon"))) {}
+            using LangevinUpdateBase<LangevinUpdate<Model>, Model>::LangevinUpdateBase;
 
-            explicit LangevinUpdateParameters(
-                    const double epsilon_
-            ) : LangevinUpdateParameters(json{
-                    {"epsilon", epsilon_},
-                    {"eps",     epsilon_}
-            }) {}
-
-            static std::string name() {
-                return "LangevinUpdate";
+            template<typename T>
+            T update(const T site, const T drift_term, const double &epsilon, const double &sqrt2epsilon) {
+                return this->model_ptr_->normalize_state(site - epsilon * drift_term + sqrt2epsilon * this->normal_(mcmc::util::g_gen));
             }
-
-            typedef LangevinUpdate<ModelParameters, SamplerCl> MCMCMethod;
-
-        protected:
-            friend class LangevinUpdate<ModelParameters, SamplerCl>;
-
-            const double epsilon;
-            const double sqrt2epsilon;
         };
-
-
-        template<typename ModelParameters, typename SamplerCl>
-        class LangevinUpdate : public MCMCMethodBase<LangevinUpdate<ModelParameters, SamplerCl>, SamplerCl> {
-        public:
-            explicit LangevinUpdate(const LangevinUpdateParameters<ModelParameters, SamplerCl> &up_,
-                                    typename ModelParameters::Model &model_) :
-                    MCMCMethodBase<LangevinUpdate<ModelParameters, SamplerCl>, SamplerCl>(up_.eps), up(up_),
-                    model(model_) {
-                normal = std::normal_distribution<double>(0, 1);
-            }
-
-            double get_stepsize() const
-            {
-                return up.epsilon;
-            }
-
-            template<typename T>
-            T operator()(const T site) {
-                const T drift_term = model.get_drift_term(site);
-                return model.normalize(site - up.epsilon * drift_term + up.sqrt2epsilon * normal(mcmc::util::g_gen));
-            }
-
-            template<typename T>
-            T operator()(const T site, const double epsilon) {
-                const T drift_term = model.get_drift_term(site);
-                return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::g_gen));
-            }
-
-            template<typename T>
-            T operator()(const T site, const std::vector<T *> neighbours) {
-                const T drift_term = model.get_drift_term(site, neighbours);
-                return model.normalize(site - up.epsilon * drift_term + up.sqrt2epsilon * normal(mcmc::util::g_gen));
-            }
-
-            template<typename T>
-            T operator()(const T site, const std::vector<T *> neighbours, const double epsilon) {
-                const T drift_term = model.get_drift_term(site, neighbours);
-                return model.normalize(site - epsilon * drift_term + std::sqrt(2 * epsilon) * normal(mcmc::util::g_gen));
-            }
-
-        protected:
-            const LangevinUpdateParameters<ModelParameters, SamplerCl> &up;
-            typename ModelParameters::Model &model;
-
-            std::normal_distribution<double> normal;
-        };
-
     }
 }
 

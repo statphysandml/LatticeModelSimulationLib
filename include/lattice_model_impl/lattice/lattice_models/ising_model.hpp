@@ -1,17 +1,19 @@
 #ifndef MAIN_ISING_MODEL_HPP
 #define MAIN_ISING_MODEL_HPP
 
-#include "../lattice_model.hpp"
 #include <mcmc_simulation/util/random.hpp>
 #include <param_helper/json.hpp>
 
+#include "../mcmc_model_base.hpp"
+#include "../../sampler/sampler_base.hpp"
+
 namespace lm_impl {
     namespace lattice_system {
-        class IsingModel : public LatticeModel<IsingModel>
+        class IsingModel : public lm_impl::model::MCMCModelBase<IsingModel>
         {
         public:
             explicit IsingModel(const json params):
-                LatticeModel(params),
+                MCMCModelBase(params),
                 beta_(get_entry<double>("beta", 0.4)),
                 J_(get_entry<double>("J", 1.0)),
                 h_(get_entry<double>("h", 0.0))
@@ -51,26 +53,30 @@ namespace lm_impl {
             double h_;
         };
 
-        struct IsingModelSampler //  : public Sampler
+        struct IsingModelSampler : public lm_impl::sampler::SamplerBase<IsingModelSampler>
         {
-            IsingModelSampler(const double eps_=0)
+            explicit IsingModelSampler(json params):
+                SamplerBase<IsingModelSampler>(params)
             {
                 uniint_ = std::uniform_int_distribution<int>(0, 1);
             }
 
+            explicit IsingModelSampler() : IsingModelSampler(json{})
+            {}
+
             template<typename T>
-            T cold_state() {
+            T cold_sample() {
                 return 1;
             }
 
             template<typename T>
-            T random_state()
+            T random_sample()
             {
                 return 2 * uniint_(mcmc::util::g_gen) - 1;
             }
 
             template<typename T>
-            T propose_state(T site)
+            T propose_sample(T site)
             {
                 return -1 * site;
             }
@@ -78,10 +84,6 @@ namespace lm_impl {
             double get_eps() const
             {
                 return 0.0;
-            }
-
-            const static std::string name() {
-                return "IsingModelSampler";
             }
 
             std::uniform_int_distribution<int> uniint_;

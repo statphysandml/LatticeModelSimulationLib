@@ -1,7 +1,3 @@
-//
-// Created by lukas on 05.11.19.
-//
-
 #ifndef MAIN_SU2_HPP
 #define MAIN_SU2_HPP
 

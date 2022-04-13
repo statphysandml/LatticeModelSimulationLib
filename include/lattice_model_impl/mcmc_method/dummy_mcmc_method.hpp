@@ -24,7 +24,7 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T operator()(const T site, const std::vector<T *> neighbours) {
+            T operator()(const T site, const std::vector<T*> neighbours) {
                 return site;
             }
         };

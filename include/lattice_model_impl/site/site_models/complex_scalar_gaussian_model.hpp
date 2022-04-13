@@ -15,9 +15,9 @@ namespace lm_impl {
         class ComplexScalarGaussianModel;
 
 
-        class ComplexScalarGaussianModelParameters : public SiteModelParameters {
+        class ComplexScalarGaussianModelParameters : public lm_impl::model::MCMCModelBaseParameters {
         public:
-            explicit ComplexScalarGaussianModelParameters(const json params_) : SiteModelParameters(params_),
+            explicit ComplexScalarGaussianModelParameters(const json params_) : lm_impl::model::MCMCModelBaseParameters(params_),
                                                                                 a(get_entry<std::complex<double> >(
                                                                                         "a")),
                                                                                 b(get_entry<std::complex<double> >(
@@ -44,7 +44,7 @@ namespace lm_impl {
         };
 
 
-        class ComplexScalarGaussianModel : public SiteModel<ComplexScalarGaussianModel> {
+        class ComplexScalarGaussianModel : public lm_impl::model::MCMCModelBase<ComplexScalarGaussianModel> {
         public:
             explicit ComplexScalarGaussianModel(const ComplexScalarGaussianModelParameters &mp_) : mp(mp_) {}
 

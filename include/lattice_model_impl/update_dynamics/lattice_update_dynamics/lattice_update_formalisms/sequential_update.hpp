@@ -1,7 +1,3 @@
-//
-// Created by lukas on 05.08.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_SEQUENTIAL_UPDATE_HPP
 #define LATTICEMODELIMPLEMENTATIONS_SEQUENTIAL_UPDATE_HPP
 
@@ -11,15 +7,15 @@
 
 namespace lm_impl {
     namespace update_dynamics {
-
         struct SequentialUpdate : public UpdateDynamicsBase<SequentialUpdate> {
-            explicit SequentialUpdate(const json params): UpdateDynamicsBase(params)
+            explicit SequentialUpdate(const json params):
+                UpdateDynamicsBase(params)
             {}
 
             explicit SequentialUpdate() : SequentialUpdate(json{}) {}
 
             template<typename System>
-            void initialize(const System &system) {
+            void initialize(System &system) {
                 uniint_ = std::uniform_int_distribution<int>(0, system.size() - 1);
             }
 

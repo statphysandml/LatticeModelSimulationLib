@@ -1,261 +1,223 @@
-//
-// Created by lukas on 11.10.19.
-//
-
 #ifndef MAIN_SITE_HPP
 #define MAIN_SITE_HPP
 
-#include "mcmc_simulation/header.hpp"
+#include <mcmc_simulation/header.hpp>
+#include <param_helper/params.hpp>
+
 
 #include "../util/measures/lattice_measures.hpp"
-#include "../update_dynamics/site_update_dynamics/site_update_formalisms/simple_update.hpp"
 
 
 namespace lm_impl {
     namespace site_system {
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters=update_dynamics::SiteSimpleUpdateParameters>
-        class SiteSystem;
-
-
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters=update_dynamics::SiteSimpleUpdateParameters>
-        class SiteParameters : public mcmc::simulation::SystemBaseParameters {
-        public:
-            explicit SiteParameters(const json params_) : SystemBaseParameters(params_) {
-                model_parameters = std::make_unique<ModelParameters>(
-                        mcmc::util::generate_parameter_class_json<SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>, ModelParameters>(
-                                *this, model_parameters->param_file_name()));
-
-                update_parameters = std::make_unique<UpdateFormalismParameters>(
-                        mcmc::util::generate_parameter_class_json<SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>, UpdateFormalismParameters>(
-                                *this, update_parameters->param_file_name()));
-
-                site_update_parameters = std::make_unique<SiteUpdateFormalismParameters>(
-                        mcmc::util::generate_parameter_class_json<SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>, SiteUpdateFormalismParameters>(
-                                *this, site_update_parameters->param_file_name()));
-            }
-
-            // Move constructor
-            SiteParameters(SiteParameters &&site_parameters) :
-                    SystemBaseParameters({"measures", site_parameters.measures}),
-                    model_parameters(std::move(site_parameters.model_parameters)),
-                    update_parameters(std::move(site_parameters.update_parameters)),
-                    site_update_parameters(std::move(
-                            site_parameters.site_update_parameters)) {}
-
-            // Move assignment
-            SiteParameters &operator=(
-                    SiteParameters &site_parameters) // Changed on my own from no & to && (from DevDat other to &&other)
-            {
-                using std::swap;
-                swap(measures, site_parameters.measures);
-                model_parameters = std::move(site_parameters.model_parameters);
-                update_parameters = std::move(site_parameters.update_parameters);
-                site_update_parameters = std::move(site_parameters.site_update_parameters);
-                return *this;
-            }
-
-            typedef SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> System;
-
-            std::unique_ptr<System> generate() {
-                return std::make_unique<System>(*this);
-            }
-
-            void write_to_file(const std::string &rel_config_path) override {
-                std::string model_params_path = get_entry<std::string>(model_parameters->param_file_name() + "_path",
-                                                                       rel_config_path);
-                model_parameters->write_to_file(model_params_path);
-
-                std::string update_formalism_params_path = get_entry<std::string>(
-                        update_parameters->param_file_name() + "_path", rel_config_path);
-                update_parameters->write_to_file(update_formalism_params_path);
-
-                std::string site_update_params_path = get_entry<std::string>(
-                        site_update_parameters->param_file_name() + "_path", rel_config_path);
-                site_update_parameters->write_to_file(site_update_params_path);
-
-                json model_parameters_ = model_parameters->get_json();
-                delete_entry(model_parameters->param_file_name());
-
-                json update_parameters_ = update_parameters->get_json();
-                delete_entry(update_parameters->param_file_name());
-
-                json site_update_parameters_ = site_update_parameters->get_json();
-                delete_entry(site_update_parameters->param_file_name());
-
-                Parameters::write_to_file(rel_config_path, name());
-
-                add_entry(model_parameters->param_file_name(), model_parameters_);
-                add_entry(update_parameters->param_file_name(), update_parameters_);
-                add_entry(site_update_parameters->param_file_name(), site_update_parameters_);
-            }
-
-            Parameters build_expanded_raw_parameters() const override {
-                Parameters parameters(params);
-                parameters.add_entry(model_parameters->param_file_name(), model_parameters->get_json());
-                parameters.add_entry(update_parameters->param_file_name(), update_parameters->get_json());
-                parameters.add_entry(site_update_parameters->param_file_name(), site_update_parameters->get_json());
-                return parameters;
-            }
-
-            // Only used for testing in simulation.hpp
-            typedef ModelParameters MP_;
-            typedef UpdateFormalismParameters UP_;
-
-        private:
-            template<typename, typename, typename, typename>
-            friend
-            class SiteSystem;
-
-            std::unique_ptr<ModelParameters> model_parameters;
-            std::unique_ptr<UpdateFormalismParameters> update_parameters;
-            std::unique_ptr<SiteUpdateFormalismParameters> site_update_parameters;
-        };
-
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters>
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
         class SiteSystem
-                : public mcmc::simulation::SystemBase<SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> > {
+                : public mcmc::simulation::MeasureSystemBase<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>> {
         public:
-            explicit SiteSystem(
-                    const SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> &sp_)
-                    : sp(sp_) {
-                model = std::make_unique<typename ModelParameters::Model>(*sp.model_parameters);
-                update_formalism = std::make_unique<typename UpdateFormalismParameters::MCMCMethod>(
-                        *sp.update_parameters, *model);
-                site_update = std::make_unique<typename SiteUpdateFormalismParameters::UpdateDynamics>(
-                        *sp.site_update_parameters);
+            explicit SiteSystem(const json params) : mcmc::simulation::MeasureSystemBase<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(params) {
+                sampler_ = Sampler(
+                    mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Sampler>(
+                        *this, Sampler::name()));
+
+                mcmc_model_ = Model(
+                    mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Model>(
+                        *this, Model::name()));
+
+                mcmc_method_ = Method(
+                    mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Method>(
+                        *this, Method::name()));
+
+                site_update_ = UpdateDynamics(
+                    mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, UpdateDynamics>(
+                        *this, UpdateDynamics::name()));
 
                 // Needs to stay here since other site_update or update_formalism use site as reference
                 initialize_site();
 
-                update_formalism->initialize(*this);
-                site_update->initialize(*this);
+                sampler_.init(*this);
+                mcmc_model_.init(*this);
+                mcmc_method_.init(*this);
+                site_update_.init(*this);
             }
 
             SiteSystem(
-                    std::unique_ptr<SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> > sp_ptr_)
-                    : SiteSystem(*(sp_ptr_.release())) {}
+                    Sampler sampler=Sampler(),
+                    Model mcmc_model=Model(),
+                    Method mcmc_method=Method(),
+                    UpdateDynamics lattice_update=UpdateDynamics(),
+                    const std::vector<std::string> measures=std::vector<std::string> {}
+            ) : SiteSystem(
+                json {
+                    {Sampler::name(), sampler.get_json()},
+                    {Model::name(), mcmc_model.get_json()},
+                    {Method::name(), mcmc_method.get_json()},
+                    {UpdateDynamics::name(), lattice_update.get_json()},
+                    {"measures", measures}
+                }
+            )
+            {}
 
-            // Move constructor
-            SiteSystem(SiteSystem &&site_system) :
-            // sp_ptr(std::move(site_system.sp_ptr)),
-            // meausures do also need to be moved, right? -> not implemented so far
-                    sp(site_system.sp),
-                    site(site_system.site),
-                    model(std::move(site_system.model)),
-                    update_formalism(std::move(site_system.update_formalism)),
-                    site_update(std::move(
-                            site_system.site_update)) {}
+            typedef SiteSystem<T, Model, Method, UpdateDynamics, Sampler> System;
 
-            // Move assignment
-            SiteSystem &
-            operator=(SiteSystem &site_system) // Changed on my own from no & to && (from DevDat other to &&other)
-            {
-                using std::swap;
-                swap(sp, site_system.sp);
-                swap(site, site_system.site);
-                model = std::move(site_system.model);
-                update_formalism = std::move(site_system.update_formalism);
-                site_update = std::move(site_system.site_update);
-                return *this;
+            void write_to_file(const std::string rel_config_path) override {
+                std::string sampler_params_path = this->template get_entry<std::string>(
+                    Sampler::name() + "_path", rel_config_path);
+                sampler_.write_to_file(sampler_params_path);
+
+                std::string mcmc_model_params_path = this->template get_entry<std::string>(
+                    Model::name() + "_path", rel_config_path);
+                mcmc_model_.write_to_file(mcmc_model_params_path);
+
+                std::string mcmc_method_params_path = this->template get_entry<std::string>(
+                    Method::name() + "_path", rel_config_path);
+                mcmc_method_.write_to_file(mcmc_method_params_path);
+
+                std::string site_update_params_path = this->template get_entry<std::string>(
+                    UpdateDynamics::name() + "_path", rel_config_path);
+                site_update_.write_to_file(site_update_params_path);
+
+                json sampler_parameters = sampler_.get_json();
+                this->template delete_entry(Sampler::name());
+
+                json mcmc_model_parameters = mcmc_model_.get_json();
+                this->template delete_entry(Model::name());
+
+                json update_parameters = mcmc_method_.get_json();
+                this->template delete_entry(Method::name());
+
+                json site_update_parameters = site_update_.get_json();
+                this->template delete_entry(UpdateDynamics::name());
+
+                param_helper::params::Parameters::write_to_file(rel_config_path, this->name());
+
+                this->template add_entry(Sampler::name(), sampler_parameters);
+                this->template add_entry(Model::name(), mcmc_model_parameters);
+                this->template add_entry(Method::name(), update_parameters);
+                this->template add_entry(UpdateDynamics::name(), site_update_parameters);
             }
 
-            static SiteSystem from_json(const json params_) {
-                // Object is generated on the heap
-                auto sp_ptr_ = std::make_unique<
-                        SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(params_);
-                return SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>(
-                        *(sp_ptr_.release()));
-            }
-
-            void update_step(uint measure_interval) {
-                site_update->operator()(*this, measure_interval);
+            param_helper::params::Parameters build_expanded_raw_parameters() const override {
+                param_helper::params::Parameters parameters(this->params_);
+                parameters.add_entry(Sampler::name(), sampler_.get_json());
+                parameters.add_entry(Model::name(), mcmc_model_.get_json());
+                parameters.add_entry(Method::name(), mcmc_method_.get_json());
+                parameters.add_entry(UpdateDynamics::name(), site_update_.get_json());
+                return parameters;
             }
 
             void initialize(std::string starting_mode) {
-                this->generate_measures(sp.measures);
+                // Needs to be called at the end so that generated objects (dynamics, mcmc_model, etc.) can already be used!
+                this->generate_measures(this->measure_names());
 
                 if (starting_mode == "hot")
-                    site = update_formalism->template random_state<T>();
+                    site_ = sampler_.template random_state<T>();
                 else
-                    site = update_formalism->template cold_state<T>();
+                    site_ = sampler_.template cold_state<T>();
             }
 
-            uint get_size() const {
+            void update_step(uint measure_interval) {
+                site_update_(*this, measure_interval);
+            }
+
+            auto get_size() const {
                 return 1;
             }
 
-            auto &at(int i) {
-                return site;
-            }
-
             auto at(int i) const {
-                return site;
+                return site_;
             }
 
-            auto &get_system_representation() {
-                return site;
+            auto &at(int i) {
+                return site_;
             }
 
             auto get_system_representation() const {
-                return site;
+                return site_;
+            }
+
+            auto &get_system_representation() {
+                return site_;
             }
 
             void generate_measures(const std::vector<std::string> &measure_names) override {
-                auto lattice_related_measures = generate_site_system_measures(sp.measures);
-                this->concat_measures(lattice_related_measures);
+                this->measurements_.clear();
+                auto site_related_measures = generate_site_system_measures(this->measure_names());
+                this->concat_measures(site_related_measures);
 
-                auto model_related_measures = model->template generate_model_measures<SiteSystem,
-                        SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(sp);
-                this->concat_measures(model_related_measures);
+                auto sampler_related_measures = sampler_. template generate_sampler_measures<
+                    SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
+                this->concat_measures(sampler_related_measures);
 
-                auto mcmc_method_related_measures = update_formalism->template generate_mcmc_method_measures<SiteSystem,
-                        SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(sp);
+                auto mcmc_model_related_measures = mcmc_model_. template generate_mcmc_model_measures<
+                    SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
+                this->concat_measures(mcmc_model_related_measures);
+
+                auto mcmc_method_related_measures = mcmc_method_. template generate_mcmc_method_measures<
+                    SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(mcmc_method_related_measures);
 
-                auto site_update_related_measures = site_update->template generate_update_dynamics_measures<SiteSystem,
-                        SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>(sp);
+                auto site_update_related_measures = site_update_. template generate_update_dynamics_measures<
+                    SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(site_update_related_measures);
 
-                auto common_defined_measures = this->generate_systembase_measures(sp.measures);
+                auto common_defined_measures = this->generate_systembase_measures(this->measure_names());
                 this->concat_measures(common_defined_measures);
             }
 
-            auto &get_update_formalism() {
-                return *update_formalism;
+            auto& get_sampler() const {
+                return sampler_;
             }
 
-            json get_params_json() const {
-                return sp.get_json();
+            auto& get_sampler() {
+                return sampler_;
             }
 
-            T energy() const {
-                return model->get_potential(site);
+            auto& get_mcmc_model() const {
+                return mcmc_model_;
             }
 
-            T drift_term() const {
-                return model->get_drift_term(site);
+            auto& get_mcmc_model() {
+                return mcmc_model_;
+            }
+
+            auto& get_mcmc_method() const {
+                return mcmc_method_;
+            }
+
+            auto& get_mcmc_method() {
+                return mcmc_method_;
+            }
+
+            auto& get_site_update() const {
+                return site_update_;
+            }
+
+            auto& get_site_update() {
+                return site_update_;
+            }
+
+            auto energy() const {
+                return mcmc_model_.get_potential(site_);
+            }
+
+            auto drift_term() const {
+                return mcmc_model_.get_drift_term(site_);
             }
 
             void normalize(T &site_elem) {
-                site_elem = model->normalize(site_elem);
-            }
-
-            double normalization_factor() {
-                return update_formalism->get_normalization_factor(site);
+                site_elem = mcmc_model_.normalize_state(site_elem);
             }
 
             typedef T SiteType;
-            typedef ModelParameters ModelType;
 
         protected:
-            const SiteParameters<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> &sp;
+            Sampler sampler_;
+            Model mcmc_model_;
+            Method mcmc_method_;
+            UpdateDynamics site_update_;
 
-            T site;
-
-            std::unique_ptr<typename ModelParameters::Model> model;
-            std::unique_ptr<typename UpdateFormalismParameters::MCMCMethod> update_formalism;
-            std::unique_ptr<typename SiteUpdateFormalismParameters::UpdateDynamics> site_update;
+            T site_;
 
             void initialize_site();
 
@@ -264,31 +226,31 @@ namespace lm_impl {
         };
 
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters>
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
         void
-        SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>::initialize_site() {
-            site = update_formalism->template random_state<T>();
+        SiteSystem<T, Model, Method, UpdateDynamics, Sampler>::initialize_site() {
+            site_ = sampler_.template random_state<T>();
         }
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters>
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
         std::ostream &operator<<(std::ostream &os,
-                                 const SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> &site) {
+                                 const SiteSystem<T, Model, Method, UpdateDynamics, Sampler> &site) {
             std::cout << site(0) << std::endl;
             return os;
         }
 
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename SiteUpdateFormalismParameters>
-        std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>>>>
-        SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters>::generate_site_system_measures(
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>>>
+        SiteSystem<T, Model, Method, UpdateDynamics, Sampler>::generate_site_system_measures(
                 const std::vector<std::string> &measure_names) {
-            typedef SiteSystem<T, ModelParameters, UpdateFormalismParameters, SiteUpdateFormalismParameters> SiteSys;
+            typedef SiteSystem<T, Model, Method, UpdateDynamics, Sampler> SiteSys;
             std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSys>>> site_measures{};
             for (auto &measure_name :  measure_names)
                 if (measure_name == "Energy")
-                    site_measures.push_back(std::make_unique<util::lattice_system_model_measures::MeasureEnergyPolicy<SiteSys>>());
+                    site_measures.push_back(std::make_unique<util::system_measures::MeasureEnergyPolicy<SiteSys>>());
                 else if (measure_name == "Drift")
-                    site_measures.push_back(std::make_unique<util::lattice_system_model_measures::MeasureDriftPolicy<SiteSys>>());
+                    site_measures.push_back(std::make_unique<util::system_measures::MeasureDriftPolicy<SiteSys>>());
             return site_measures;
         }
 

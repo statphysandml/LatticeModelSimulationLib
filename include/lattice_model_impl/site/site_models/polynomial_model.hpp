@@ -1,65 +1,41 @@
-//
-// Created by lukas on 12.11.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_POLYNOMIAL_MODEL_HPP
 #define LATTICEMODELIMPLEMENTATIONS_POLYNOMIAL_MODEL_HPP
 
-#include "../site_model.hpp"
+#include "../../lattice/mcmc_model_base.hpp"
 #include "mcmc_simulation/util/random.hpp"
 
 
 namespace lm_impl {
     namespace site_system {
-
-        class PolynomialModel;
-
-
-        class PolynomialModelParameters : public SiteModelParameters {
+        class PolynomialModel : public lm_impl::model::MCMCModelBase<PolynomialModel> {
         public:
-            explicit PolynomialModelParameters(const json params_) : SiteModelParameters(params_),
-                                                                     sigma(get_entry<double>("sigma")),
-                                                                     lambda(get_entry<double>("lambda")),
-                                                                     h(get_entry<double>("h", 0.0)) {}
+            explicit PolynomialModel(const json params):
+                MCMCModelBase(params),
+                sigma_(get_entry<double>("sigma", 1.0)),
+                lambda_(get_entry<double>("lambda", 1.0)),
+                h_(get_entry<double>("h", 0.0)) {}
 
-            explicit PolynomialModelParameters(double lambda_, double sigma_, double h_) : PolynomialModelParameters(
+            explicit PolynomialModel(double lambda=1.0, double sigma=1.0, double h=0.0):
+                PolynomialModel(
                     json{
-                            {"lambda", lambda_},
-                            {"sigma",  sigma_},
-                            {"h",      h_}
+                            {"lambda", lambda},
+                            {"sigma",  sigma},
+                            {"h",      h}
                     }) {}
 
-            static std::string name() {
-                return "PolynomialModel";
-            }
-
-            typedef PolynomialModel Model;
-
-        private:
-            friend class PolynomialModel;
-
-            const double sigma;
-            const double lambda;
-            const double h;
-        };
-
-
-        class PolynomialModel : public SiteModel<PolynomialModel> {
-        public:
-            explicit PolynomialModel(const PolynomialModelParameters &mp_) : mp(mp_) {}
-
             double get_potential(const double site) const {
-                return 0.5 * mp.sigma * std::pow(site, 2) + 0.25 * mp.lambda * std::pow(site, 4) + mp.h * site;
+                return 0.5 * sigma_ * std::pow(site, 2) + 0.25 * lambda_ * std::pow(site, 4) + h_ * site;
             }
 
             double get_drift_term(const double site) const {
-                return mp.sigma * site + mp.lambda * std::pow(site, 3) + mp.h;
+                return sigma_ * site + lambda_ * std::pow(site, 3) + h_;
             }
 
         private:
-            const PolynomialModelParameters &mp;
+            double sigma_;
+            double lambda_;
+            double h_;
         };
-
     }
 }
 

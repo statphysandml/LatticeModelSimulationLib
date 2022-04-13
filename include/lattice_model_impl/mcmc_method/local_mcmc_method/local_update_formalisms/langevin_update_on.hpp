@@ -12,103 +12,18 @@
 
 namespace lm_impl {
     namespace mcmc_method {
-
-        template<typename ModelParameters>
-        class LangevinUpdateON;
-
-
-        template<typename ModelParameters>
-        class LangevinUpdateONParameters : public MCMCMethodBaseParameters {
+        template<typename Model>
+        class LangevinONModelUpdate : public LangevinUpdateBase<LangevinONModelUpdate<Model>, Model> {
         public:
-            explicit LangevinUpdateONParameters(const json params_) : MCMCMethodBaseParameters(params_),
-                                                                             epsilon(get_entry<double>("epsilon", eps)),
-                                                                             sqrt2epsilon(sqrt(2 * get_entry<double>(
-                                                                                     "epsilon", eps))) {}
-
-            explicit LangevinUpdateONParameters(
-                    const double epsilon_
-            ) : LangevinUpdateONParameters(json{
-                    {"epsilon", epsilon_},
-                    {"eps",     epsilon_}
-            }) {}
-
-            static std::string name() {
-                return "LangevinUpdateON";
-            }
-
-            typedef LangevinUpdateON<ModelParameters> MCMCMethod;
-
-        private:
-            friend class LangevinUpdateON<ModelParameters>;
-
-            const double epsilon;
-            const double sqrt2epsilon;
-        };
-
-
-        template<typename ModelParameters>
-        class LangevinUpdateON
-                : public MCMCMethodBase<LangevinUpdateON<ModelParameters>, lm_impl::lattice_system::ONModelSampler> {
-        public:
-            explicit LangevinUpdateON(const LangevinUpdateONParameters<ModelParameters> &up_,
-                                             typename ModelParameters::Model &model_)
-                    : MCMCMethodBase<LangevinUpdateON<ModelParameters>, lm_impl::lattice_system::ONModelSampler>(up_.eps), up(up_),
-                      model(model_) {
-                normal = std::normal_distribution<double>(0, 1);
-            }
-
-            double get_stepsize() const
-            {
-                return up.epsilon;
-            }
-
-            template<typename T>
-            T estimate_drift_term(const T site) {
-                return model.get_drift_term(site);
-            }
-
-            template<typename T>
-            T estimate_drift_term(const T site, const std::vector<T *> neighbours) {
-                return model.get_drift_term(site, neighbours);
-            }
-
-            template<typename T>
-            T operator()(const T site) {
-                return update(site, model.get_drift_term(site), up.epsilon, up.sqrt2epsilon);
-            }
-
-            template<typename T>
-            T operator()(const T site, const std::vector<T *> neighbours) {
-                return update(site, model.get_drift_term(site, neighbours), up.epsilon, up.sqrt2epsilon);
-            }
-
-            template<typename T>
-            T operator()(const T site, const double  epsilon) {
-                T eps_drift_term = model.get_drift_term(site);
-                return update(site, eps_drift_term, epsilon, std::sqrt(2 * epsilon));
-            }
-
-            template<typename T>
-            T
-            operator()(const T site, const std::vector<T *> neighbours, const double  epsilon) {
-                T eps_drift_term = model.get_drift_term(site, neighbours);
-                return update(site, eps_drift_term, epsilon, std::sqrt(2 * epsilon));
-            }
-
-        private:
-            const LangevinUpdateONParameters<ModelParameters> &up;
-            typename ModelParameters::Model &model;
-            std::vector<double> epsilon;
-
-            std::normal_distribution<double> normal;
+            using LangevinUpdateBase<LangevinONModelUpdate<Model>, Model>::LangevinUpdateBase;
 
             template<typename T>
             T update(const T site, const T drift_term, const double &epsilon, const double &sqrt2epsilon) {
                 T new_site(0);
                 for(uint i = 0; i < new_site.dim(); i++) {
-                    new_site(i) = site(i) - epsilon * drift_term(i) + sqrt2epsilon * normal(mcmc::util::g_gen);
+                    new_site(i) = site(i) - epsilon * drift_term(i) + sqrt2epsilon * this->normal_(mcmc::util::g_gen);
                 }
-                return model.normalize(new_site);
+                return this->model_ptr_->normalize_state(new_site);
             }
         };
     }

@@ -1,9 +1,5 @@
-//
-// Created by lukas on 11.09.20.
-//
-
-#ifndef LATTICEMODELIMPLEMENTATIONS_mcmc_method_BASE_HPP
-#define LATTICEMODELIMPLEMENTATIONS_mcmc_method_BASE_HPP
+#ifndef LATTICEMODELIMPLEMENTATIONS_MCMC_METHOD_BASE_HPP
+#define LATTICEMODELIMPLEMENTATIONS_MCMC_METHOD_BASE_HPP
 
 
 #include <param_helper/params.hpp>
@@ -33,7 +29,7 @@ namespace lm_impl {
             }
 
             template<typename System>
-            void init(const System &site) {
+            void init(System &site) {
                 return mcmc_method().initialize(site);
             }
 
@@ -46,19 +42,19 @@ namespace lm_impl {
 
         protected:
             template<typename System>
-            void initialize(const System &system) {}
+            void initialize(System &system) {}
 
         private:
             MCMCMethod &mcmc_method() {
-                return *static_cast<MCMCMethod *>(this);
+                return *static_cast<MCMCMethod*>(this);
             }
 
             const MCMCMethod &mcmc_method() const {
-                return *static_cast<const MCMCMethod *>(this);
+                return *static_cast<const MCMCMethod*>(this);
             }
         };
 
     }
 }
 
-#endif //LATTICEMODELIMPLEMENTATIONS_mcmc_method_BASE_HPP
+#endif //LATTICEMODELIMPLEMENTATIONS_MCMC_METHOD_BASE_HPP

@@ -6,7 +6,7 @@
 #define LATTICEMODELIMPLEMENTATIONS_XY_MODEL_HPP
 
 
-#include "../lattice_model.hpp"
+#include "../mcmc_model_base.hpp"
 #include "mcmc_simulation/util/random.hpp"
 #include "param_helper/json.hpp"
 
@@ -37,10 +37,10 @@ namespace lm_impl {
             }
         };
 
-        class XYModel : public LatticeModel<XYModel> {
+        class XYModel : public lm_impl::model::MCMCModelBase<XYModel> {
         public:
             explicit XYModel(const json params):
-                LatticeModel(params),
+                MCMCModelBase(params),
                 beta_(get_entry<double>("beta", 0.5)),
                 J_(get_entry<double>("J", 1.0)),
                 h_(get_entry<double>("h", 0.0))
@@ -62,7 +62,7 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T get_potential(const T site, const std::vector<T *> neighbours) const
+            T get_potential(const T site, const std::vector<T*> neighbours) const
             {
                 double S = 0;
                 for (size_t i = 0; i < neighbours.size(); i ++) {
@@ -84,7 +84,7 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T get_drift_term(const T site, const std::vector<T *> neighbours) const
+            T get_drift_term(const T site, const std::vector<T*> neighbours) const
             {
                 double S = 0;
                 for (size_t i = 0; i < neighbours.size(); i += 2) {

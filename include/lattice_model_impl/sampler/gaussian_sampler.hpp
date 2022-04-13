@@ -4,6 +4,8 @@
 
 #include <mcmc_simulation/util/random.hpp>
 
+#include "sampler_base.hpp"
+
 
 namespace lm_impl {
     namespace sampler {
@@ -12,28 +14,36 @@ namespace lm_impl {
          *
          * Sampler function for sampling, evaluating and integrating a Gaussian distribution.
          */
-        struct GaussianSampler {
-            GaussianSampler(const double eps_=0.1) : eps(eps_) {
-                normal = std::normal_distribution<double>(0, 1);
+        struct GaussianSampler : public SamplerBase<GaussianSampler> {
+            
+            explicit GaussianSampler(json params):
+                SamplerBase<GaussianSampler>(params),
+                eps_(this->template get_entry<double>("eps", 0.1))
+            {
+                normal_ = std::normal_distribution<double>(0, 1);
+            }
+
+            explicit GaussianSampler(const double eps=0.1):
+                GaussianSampler(json{{"eps", eps}})
+            {}
+
+            template<typename T>
+            T random_sample() {
+                return std::sqrt(2 * eps_) * normal_(mcmc::util::g_gen);
             }
 
             template<typename T>
-            T random_state() {
-                return std::sqrt(2 * eps) * normal(mcmc::util::g_gen);
-            }
-
-            template<typename T>
-            T cold_state() {
+            T cold_sample() {
                 return T(0);
             }
 
             template<typename T>
-            T propose_state(T site) {
-                return site + std::sqrt(2 * eps) * normal(mcmc::util::g_gen);
+            T proposal_sample(T site) {
+                return site + std::sqrt(2 * eps_) * normal_(mcmc::util::g_gen);
             }
 
             double get_eps() const {
-                return eps;
+                return eps_;
             }
 
             template<typename T>
@@ -56,14 +66,10 @@ namespace lm_impl {
                 return -2.0 / (std::pow(x, 2.0) - 1.0);
             }
 
-            const static std::string name() {
-                return "GaussianSampler";
-            }
+            double eps_;
+            std::normal_distribution<double> normal_;
 
-            const double eps;
-            std::normal_distribution<double> normal;
-
-            transformer_func transformer;
+            transformer_func transformer_;
         };
     }
 }

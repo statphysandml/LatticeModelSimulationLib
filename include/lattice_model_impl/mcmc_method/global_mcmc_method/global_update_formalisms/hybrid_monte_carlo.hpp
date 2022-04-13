@@ -15,11 +15,11 @@
 namespace lm_impl {
     namespace mcmc_method {
 
-        template<typename T, typename Model, typename Sampler>
-        class HybridMonteCarloUpdate : public MCMCMethodBase<HybridMonteCarloUpdate<T, Model, Sampler>> {
+        template<typename T, typename Model>
+        class HybridMonteCarloUpdate : public MCMCMethodBase<HybridMonteCarloUpdate<T, Model>> {
         public:
             explicit HybridMonteCarloUpdate(const json params):
-                MCMCMethodBase<HybridMonteCarloUpdate<T, Model, Sampler>>(params),
+                MCMCMethodBase<HybridMonteCarloUpdate<T, Model>>(params),
                 dt_(this->template get_entry<double>("dt", 0.01)),
                 n_(this->template get_entry<int>("n", 20)),
                 m_(this->template get_entry<double>("m", 1.0))
@@ -36,7 +36,7 @@ namespace lm_impl {
             {}
 
             template<typename System>
-            void initialize(const System &system) {
+            void initialize(System &system) {
                 model_ptr_ = &system.get_mcmc_model();
                 momenta_ = std::vector<double>(system.size(), 0.0);
                 backup_momenta_ = std::vector<double>(system.size(), 0.0);
