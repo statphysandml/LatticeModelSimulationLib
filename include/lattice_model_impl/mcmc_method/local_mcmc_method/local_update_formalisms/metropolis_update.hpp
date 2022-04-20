@@ -27,8 +27,8 @@ namespace lm_impl {
 
             template<typename System>
             void initialize(System &system) {
-                sampler_ptr_ = &system.get_sampler();
-                model_ptr_ = &system.get_mcmc_model();
+                sampler_ptr_ = system.get_sampler().get();
+                model_ptr_ = system.get_mcmc_model().get();
             }
 
             template<typename T>

@@ -21,7 +21,7 @@ namespace lm_impl {
             {}
 
             template<typename Site>
-            void initialize_update(Site &site) {
+            void initialize(Site &site) {
                 thermalized_ = false;
             }
 
@@ -35,12 +35,12 @@ namespace lm_impl {
 
             template<typename Site>
             void thermalization_phase_with_adpative_stepsize(Site &site) {
-                double max_epsilon = site.get_mcmc_method().get_stepsize();
+                double max_epsilon = site.get_mcmc_method()->get_stepsize();
                 int n_thermalization_steps = int(thermalization_langevin_time_interval_ / max_epsilon);
                 std::cout << "Perform " << n_thermalization_steps << " thermalization steps with a step width of " << max_epsilon << std::endl;
                 for (int k = 0; k < n_thermalization_steps; k++) {
-                    KExpectation_ += std::fabs(site.get_mcmc_method().estimate_drift_term(site.get_system_representation()));
-                    site.get_system_representation() = update_system_site(site.get_mcmc_method(), site.get_system_representation());
+                    KExpectation_ += std::fabs(site.get_mcmc_method()->estimate_drift_term(site.get_system_representation()));
+                    site.get_system_representation() = update_system_site(*site.get_mcmc_method(), site.get_system_representation());
                 }
                 KExpectation_ /= n_thermalization_steps;
                 thermalized_ = true;
@@ -49,19 +49,19 @@ namespace lm_impl {
 
             template<typename Site>
             void parallel_update_with_adpative_stepsize(Site &site, uint measure_interval = 1) {
-                double max_epsilon = site.get_mcmc_method().get_stepsize();
+                double max_epsilon = site.get_mcmc_method()->get_stepsize();
 
                 // Loop for evolving measure_interval * langevin_time_measure_interval in the Langevin time
                 for (uint k = 0; k < measure_interval; k++) {
                     uint break_out_counter = 0;
                     while(langevin_time_ < langevin_time_measure_interval_ and break_out_counter < 10000000) {
-                        const double KMax = std::fabs(site.get_mcmc_method().estimate_drift_term(site.get_system_representation()));
+                        const double KMax = std::fabs(site.get_mcmc_method()->estimate_drift_term(site.get_system_representation()));
                         double epsilon = std::min(max_epsilon, max_epsilon * KExpectation_ / KMax);
                         if(epsilon > 1.0) {
                             std::cerr << "Detected epsilon > 1 in adaptive stepsize" << std::endl;
                             std::exit(EXIT_FAILURE);
                         }
-                        site.get_system_representation() = update_system_site(site.get_mcmc_method(), site.get_system_representation(), epsilon);
+                        site.get_system_representation() = update_system_site(*site.get_mcmc_method(), site.get_system_representation(), epsilon);
                         langevin_time_ += epsilon;
                         break_out_counter += 1;
                     }

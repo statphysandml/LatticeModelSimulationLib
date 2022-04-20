@@ -21,7 +21,7 @@ namespace lm_impl {
             {}
 
             template<typename System>
-            void initialize_update(System &system) {
+            void initialize(System &system) {
                 thermalized_ = false;
             }
 
@@ -35,7 +35,7 @@ namespace lm_impl {
 
             template<typename System>
             void thermalization_phase_with_adpative_stepsize(System &system) {
-                double max_epsilon = system.get_mcmc_method().get_stepsize();
+                double max_epsilon = system.get_mcmc_method()->get_stepsize();
                 int n_thermalization_steps = int(thermalization_langevin_time_interval_ / max_epsilon);
                 std::cout << "Perform " << n_thermalization_steps << " thermalization steps with a step width of " << max_epsilon << std::endl;
 
@@ -44,7 +44,7 @@ namespace lm_impl {
                     double KMax = 0;
                     for (uint i = 0; i < system.size(); i++) {
                         const double K = std::fabs(
-                                system.get_mcmc_method().estimate_drift_term(system[i], system.neighbours_at(i)));
+                                system.get_mcmc_method()->estimate_drift_term(system[i], system.neighbours_at(i)));
                         if (K > KMax)
                             KMax = K;
                     }
@@ -53,7 +53,7 @@ namespace lm_impl {
                     std::vector<typename System::SiteType> system_grid_new(system.size(), typename System::SiteType(0));
 
                     for (uint i = 0; i < system.size(); i++) {
-                        system_grid_new[i] = update_system_site(system.get_mcmc_method(), system[i],
+                        system_grid_new[i] = update_system_site(*system.get_mcmc_method(), system[i],
                                                                   system.neighbours_at(i));
                     }
 
@@ -67,7 +67,7 @@ namespace lm_impl {
 
             template<typename System>
             void parallel_update_with_adpative_stepsize(System &system, uint measure_interval = 1) {
-                double max_epsilon = system.get_mcmc_method().get_stepsize();
+                double max_epsilon = system.get_mcmc_method()->get_stepsize();
 
                 for (uint j = 0; j < measure_interval; j++) {
                     uint break_out_counter = 0;
@@ -75,7 +75,7 @@ namespace lm_impl {
                         double KMax = 0;
                         for (uint i = 0; i < system.size(); i++) {
                             const double K = std::fabs(
-                                    system.get_mcmc_method().estimate_drift_term(system[i], system.neighbours_at(i)));
+                                    system.get_mcmc_method()->estimate_drift_term(system[i], system.neighbours_at(i)));
                             if (K > KMax)
                                 KMax = K;
                         }
@@ -85,7 +85,7 @@ namespace lm_impl {
                         std::vector<typename System::SiteType> system_grid_new(system.size(), typename System::SiteType(0));
 
                         for (uint i = 0; i < system.size(); i++) {
-                            system_grid_new[i] = update_system_site(system.get_mcmc_method(), system[i],
+                            system_grid_new[i] = update_system_site(*system.get_mcmc_method(), system[i],
                                                                       system.neighbours_at(i), epsilon);
                         }
 

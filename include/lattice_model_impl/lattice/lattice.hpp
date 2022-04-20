@@ -33,19 +33,19 @@ namespace lm_impl {
                 else
                     elem_per_site_ = dimension_;
 
-                sampler_ = Sampler(
+                sampler_ptr_ = std::make_unique<Sampler>(
                     mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, Sampler>(
                         *this, Sampler::name()));
 
-                mcmc_model_ = Model(
+                mcmc_model_ptr_ = std::make_unique<Model>(
                     mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, Model>(
                         *this, Model::name()));
 
-                mcmc_method_ = Method(
+                mcmc_method_ptr_ = std::make_unique<Method>(
                     mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, Method>(
                         *this, Method::name()));
 
-                lattice_update_ = UpdateDynamics(
+                lattice_update_ptr_ = std::make_unique<UpdateDynamics>(
                     mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, UpdateDynamics>(
                         *this, UpdateDynamics::name()));
 
@@ -55,10 +55,10 @@ namespace lm_impl {
                 else
                     set_nearest_neighbours();
 
-                sampler_.init(*this);
-                mcmc_model_.init(*this);
-                mcmc_method_.init(*this);
-                lattice_update_.init(*this);
+                sampler_ptr_->init(*this);
+                mcmc_model_ptr_->init(*this);
+                mcmc_method_ptr_->init(*this);
+                lattice_update_ptr_->init(*this);
             }
             
             LatticeSystem(
@@ -87,30 +87,30 @@ namespace lm_impl {
             void write_to_file(const std::string rel_config_path) override {
                 std::string sampler_params_path = this->template get_entry<std::string>(
                     Sampler::name() + "_path", rel_config_path);
-                sampler_.write_to_file(sampler_params_path);
+                sampler_ptr_->write_to_file(sampler_params_path);
 
                 std::string mcmc_model_params_path = this->template get_entry<std::string>(
                     Model::name() + "_path", rel_config_path);
-                mcmc_model_.write_to_file(mcmc_model_params_path);
+                mcmc_model_ptr_->write_to_file(mcmc_model_params_path);
 
                 std::string mcmc_method_params_path = this->template get_entry<std::string>(
                     Method::name() + "_path", rel_config_path);
-                mcmc_method_.write_to_file(mcmc_method_params_path);
+                mcmc_method_ptr_->write_to_file(mcmc_method_params_path);
 
                 std::string lattice_update_params_path = this->template get_entry<std::string>(
                     UpdateDynamics::name() + "_path", rel_config_path);
-                lattice_update_.write_to_file(lattice_update_params_path);
+                lattice_update_ptr_->write_to_file(lattice_update_params_path);
 
-                json sampler_parameters = sampler_.get_json();
+                json sampler_parameters = sampler_ptr_->get_json();
                 this->template delete_entry(Sampler::name());
 
-                json mcmc_model_parameters = mcmc_model_.get_json();
+                json mcmc_model_parameters = mcmc_model_ptr_->get_json();
                 this->template delete_entry(Model::name());
 
-                json update_parameters = mcmc_method_.get_json();
+                json update_parameters = mcmc_method_ptr_->get_json();
                 this->template delete_entry(Method::name());
 
-                json lattice_update_parameters = lattice_update_.get_json();
+                json lattice_update_parameters = lattice_update_ptr_->get_json();
                 this->template delete_entry(UpdateDynamics::name());
 
                 param_helper::params::Parameters::write_to_file(rel_config_path, this->name());
@@ -123,10 +123,10 @@ namespace lm_impl {
 
             param_helper::params::Parameters build_expanded_raw_parameters() const override {
                 param_helper::params::Parameters parameters(this->params_);
-                parameters.add_entry(Sampler::name(), sampler_.get_json());
-                parameters.add_entry(Model::name(), mcmc_model_.get_json());
-                parameters.add_entry(Method::name(), mcmc_method_.get_json());
-                parameters.add_entry(UpdateDynamics::name(), lattice_update_.get_json());
+                parameters.add_entry(Sampler::name(), sampler_ptr_->get_json());
+                parameters.add_entry(Model::name(), mcmc_model_ptr_->get_json());
+                parameters.add_entry(Method::name(), mcmc_method_ptr_->get_json());
+                parameters.add_entry(UpdateDynamics::name(), lattice_update_ptr_->get_json());
                 return parameters;
             }
 
@@ -148,14 +148,14 @@ namespace lm_impl {
 
                 if(starting_mode == "hot")
                     for (auto &site : lattice_)
-                        site = sampler_.template random_state<T>();
+                        site = sampler_ptr_->template random_state<T>();
                 else // starting_mode == "cold"
                     for (auto &site : lattice_)
-                        site = sampler_.template cold_state<T>();
+                        site = sampler_ptr_->template cold_state<T>();
             }
 
             void update_step(uint measure_interval) {
-                lattice_update_(*this, measure_interval);
+                lattice_update_ptr_->operator()(*this, measure_interval);
             }
 
             // Returns the total number of elements of the lattice - (equals the total number of sites if elem_per_site=1)
@@ -204,19 +204,19 @@ namespace lm_impl {
                 auto lattice_related_measures = generate_lattice_system_measures(this->measure_names());
                 this->concat_measures(lattice_related_measures);
 
-                auto sampler_related_measures = sampler_. template generate_sampler_measures<
+                auto sampler_related_measures = sampler_ptr_-> template generate_sampler_measures<
                     LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(sampler_related_measures);
 
-                auto mcmc_model_related_measures = mcmc_model_. template generate_mcmc_model_measures<
+                auto mcmc_model_related_measures = mcmc_model_ptr_-> template generate_mcmc_model_measures<
                     LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(mcmc_model_related_measures);
 
-                auto mcmc_method_related_measures = mcmc_method_. template generate_mcmc_method_measures<
+                auto mcmc_method_related_measures = mcmc_method_ptr_-> template generate_mcmc_method_measures<
                     LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(mcmc_method_related_measures);
 
-                auto lattice_update_related_measures = lattice_update_. template generate_update_dynamics_measures<
+                auto lattice_update_related_measures = lattice_update_ptr_-> template generate_update_dynamics_measures<
                     LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(lattice_update_related_measures);
 
@@ -225,41 +225,41 @@ namespace lm_impl {
             }
 
             auto& get_sampler() const {
-                return sampler_;
+                return sampler_ptr_;
             }
 
             auto& get_sampler() {
-                return sampler_;
+                return sampler_ptr_;
             }
 
             auto& get_mcmc_model() const {
-                return mcmc_model_;
+                return mcmc_model_ptr_;
             }
 
             auto& get_mcmc_model() {
-                return mcmc_model_;
+                return mcmc_model_ptr_;
             }
 
             auto& get_mcmc_method() const {
-                return mcmc_method_;
+                return mcmc_method_ptr_;
             }
 
             auto& get_mcmc_method() {
-                return mcmc_method_;
+                return mcmc_method_ptr_;
             }
 
             auto& get_lattice_update() const {
-                return lattice_update_;
+                return lattice_update_ptr_;
             }
 
             auto& get_lattice_update() {
-                return lattice_update_;
+                return lattice_update_ptr_;
             }
 
             auto energy() const {
-                decltype(mcmc_model_.get_energy_per_lattice_elem(lattice_[0], neighbours_[0])) energy(0);
+                decltype(mcmc_model_ptr_->get_energy_per_lattice_elem(lattice_[0], neighbours_[0])) energy(0);
                 for (uint i = 0; i < get_size(); i++) {
-                    energy += mcmc_model_.get_energy_per_lattice_elem(lattice_[i], neighbours_[i]);
+                    energy += mcmc_model_ptr_->get_energy_per_lattice_elem(lattice_[i], neighbours_[i]);
                 }
                 return energy;
             }
@@ -267,7 +267,7 @@ namespace lm_impl {
             auto drift_term() const {
                 std::cerr << "Drift term computation needs to be implemented here" << std::endl;
                 std::exit(EXIT_FAILURE);
-                decltype(mcmc_model_.get_potential(lattice_[0], neighbours_[0])) drift_term(0);
+                decltype(mcmc_model_ptr_->get_potential(lattice_[0], neighbours_[0])) drift_term(0);
                 for (uint i = 0; i < get_size(); i++) {
                     // ToDo: How can this be integrated?
                     // drift_term += mcmc_model.get_drift_term(lattice_[i], neighbours[i]);
@@ -277,16 +277,16 @@ namespace lm_impl {
 
             void normalize(std::vector<T> &lattice_grid) {
                 for (auto &elem : lattice_grid)
-                    elem = mcmc_model_.normalize_state(elem);
+                    elem = mcmc_model_ptr_->normalize_state(elem);
             }
 
             typedef T SiteType;
 
         protected:
-            Sampler sampler_;
-            Model mcmc_model_;
-            Method mcmc_method_;
-            UpdateDynamics lattice_update_;
+            std::unique_ptr<Sampler> sampler_ptr_;
+            std::unique_ptr<Model> mcmc_model_ptr_;
+            std::unique_ptr<Method> mcmc_method_ptr_;
+            std::unique_ptr<UpdateDynamics> lattice_update_ptr_;
 
             std::string lattice_action_type_;
 

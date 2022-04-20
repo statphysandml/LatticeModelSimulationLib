@@ -20,7 +20,7 @@ namespace lm_impl {
             template<typename System>
             void update(System &system, uint measure_interval = 1) {
                 for (uint k = 0; k < measure_interval; k++) {
-                    global_system_update(system.get_mcmc_method(), system);
+                    global_system_update(*system.get_mcmc_method(), system);
                 }
             }
         };

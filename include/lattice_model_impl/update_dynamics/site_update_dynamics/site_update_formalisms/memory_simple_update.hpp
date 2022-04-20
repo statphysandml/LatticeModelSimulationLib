@@ -34,7 +34,7 @@ namespace lm_impl {
             explicit MemorySiteSimpleUpdate(const MemorySiteSimpleUpdateParameters<SiteType> &lp_) : lp(lp_) {}
 
             template<typename Site>
-            void initialize_update(const Site &site) {
+            void initialize(const Site &site) {
                 site_system_params = site.get_params_json();
             }
 

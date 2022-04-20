@@ -32,9 +32,6 @@ namespace lm_impl {
             explicit MemoryParallelUpdate(const MemoryParallelUpdateParameters<SiteType> &lp_) : lp(lp_) {}
 
             template<typename Lattice>
-            void initialize_update(const Lattice &lattice) {}
-
-            template<typename Lattice>
             void update(Lattice &lattice, uint measure_interval = 1) {
                 // ToDo: Introduce boost!
                 for (auto j = 0; j < measure_interval; j++) {

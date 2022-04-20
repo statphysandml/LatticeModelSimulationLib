@@ -24,7 +24,7 @@ namespace lm_impl {
                 for (size_t k = 0; k < measure_interval; k++) {
                     for (uint j = 0; j < system.size(); j++) {
                         int i = uniint_(mcmc::util::g_gen);
-                        system[i] = update_system_site(system.get_mcmc_method(), system[i], system.neighbours_at(i));
+                        system[i] = update_system_site(*system.get_mcmc_method(), system[i], system.neighbours_at(i));
                         // const double K = std::fabs(update_formalism->estimate_drift_term(system[i], system.neighbours_at[i]));
                     }
                 }

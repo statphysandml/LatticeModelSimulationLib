@@ -16,29 +16,29 @@ namespace lm_impl {
                 : public mcmc::simulation::MeasureSystemBase<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>> {
         public:
             explicit SiteSystem(const json params) : mcmc::simulation::MeasureSystemBase<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(params) {
-                sampler_ = Sampler(
+                sampler_ptr_ = std::make_unique<Sampler>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Sampler>(
                         *this, Sampler::name()));
 
-                mcmc_model_ = Model(
+                mcmc_model_ptr_ = std::make_unique<Model>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Model>(
                         *this, Model::name()));
 
-                mcmc_method_ = Method(
+                mcmc_method_ptr_ = std::make_unique<Method>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Method>(
                         *this, Method::name()));
 
-                site_update_ = UpdateDynamics(
+                site_update_ptr_ = std::make_unique<UpdateDynamics>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, UpdateDynamics>(
                         *this, UpdateDynamics::name()));
 
                 // Needs to stay here since other site_update or update_formalism use site as reference
                 initialize_site();
 
-                sampler_.init(*this);
-                mcmc_model_.init(*this);
-                mcmc_method_.init(*this);
-                site_update_.init(*this);
+                sampler_ptr_->init(*this);
+                mcmc_model_ptr_->init(*this);
+                mcmc_method_ptr_->init(*this);
+                site_update_ptr_->init(*this);
             }
 
             SiteSystem(
@@ -63,30 +63,30 @@ namespace lm_impl {
             void write_to_file(const std::string rel_config_path) override {
                 std::string sampler_params_path = this->template get_entry<std::string>(
                     Sampler::name() + "_path", rel_config_path);
-                sampler_.write_to_file(sampler_params_path);
+                sampler_ptr_->write_to_file(sampler_params_path);
 
                 std::string mcmc_model_params_path = this->template get_entry<std::string>(
                     Model::name() + "_path", rel_config_path);
-                mcmc_model_.write_to_file(mcmc_model_params_path);
+                mcmc_model_ptr_->write_to_file(mcmc_model_params_path);
 
                 std::string mcmc_method_params_path = this->template get_entry<std::string>(
                     Method::name() + "_path", rel_config_path);
-                mcmc_method_.write_to_file(mcmc_method_params_path);
+                mcmc_method_ptr_->write_to_file(mcmc_method_params_path);
 
                 std::string site_update_params_path = this->template get_entry<std::string>(
                     UpdateDynamics::name() + "_path", rel_config_path);
-                site_update_.write_to_file(site_update_params_path);
+                site_update_ptr_->write_to_file(site_update_params_path);
 
-                json sampler_parameters = sampler_.get_json();
+                json sampler_parameters = sampler_ptr_->get_json();
                 this->template delete_entry(Sampler::name());
 
-                json mcmc_model_parameters = mcmc_model_.get_json();
+                json mcmc_model_parameters = mcmc_model_ptr_->get_json();
                 this->template delete_entry(Model::name());
 
-                json update_parameters = mcmc_method_.get_json();
+                json update_parameters = mcmc_method_ptr_->get_json();
                 this->template delete_entry(Method::name());
 
-                json site_update_parameters = site_update_.get_json();
+                json site_update_parameters = site_update_ptr_->get_json();
                 this->template delete_entry(UpdateDynamics::name());
 
                 param_helper::params::Parameters::write_to_file(rel_config_path, this->name());
@@ -99,10 +99,10 @@ namespace lm_impl {
 
             param_helper::params::Parameters build_expanded_raw_parameters() const override {
                 param_helper::params::Parameters parameters(this->params_);
-                parameters.add_entry(Sampler::name(), sampler_.get_json());
-                parameters.add_entry(Model::name(), mcmc_model_.get_json());
-                parameters.add_entry(Method::name(), mcmc_method_.get_json());
-                parameters.add_entry(UpdateDynamics::name(), site_update_.get_json());
+                parameters.add_entry(Sampler::name(), sampler_ptr_->get_json());
+                parameters.add_entry(Model::name(), mcmc_model_ptr_->get_json());
+                parameters.add_entry(Method::name(), mcmc_method_ptr_->get_json());
+                parameters.add_entry(UpdateDynamics::name(), site_update_ptr_->get_json());
                 return parameters;
             }
 
@@ -111,13 +111,13 @@ namespace lm_impl {
                 this->generate_measures(this->measure_names());
 
                 if (starting_mode == "hot")
-                    site_ = sampler_.template random_state<T>();
+                    site_ = sampler_ptr_->template random_state<T>();
                 else
-                    site_ = sampler_.template cold_state<T>();
+                    site_ = sampler_ptr_->template cold_state<T>();
             }
 
             void update_step(uint measure_interval) {
-                site_update_(*this, measure_interval);
+                site_update_ptr_->operator()(*this, measure_interval);
             }
 
             auto get_size() const {
@@ -145,19 +145,19 @@ namespace lm_impl {
                 auto site_related_measures = generate_site_system_measures(this->measure_names());
                 this->concat_measures(site_related_measures);
 
-                auto sampler_related_measures = sampler_. template generate_sampler_measures<
+                auto sampler_related_measures = sampler_ptr_-> template generate_sampler_measures<
                     SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(sampler_related_measures);
 
-                auto mcmc_model_related_measures = mcmc_model_. template generate_mcmc_model_measures<
+                auto mcmc_model_related_measures = mcmc_model_ptr_-> template generate_mcmc_model_measures<
                     SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(mcmc_model_related_measures);
 
-                auto mcmc_method_related_measures = mcmc_method_. template generate_mcmc_method_measures<
+                auto mcmc_method_related_measures = mcmc_method_ptr_-> template generate_mcmc_method_measures<
                     SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(mcmc_method_related_measures);
 
-                auto site_update_related_measures = site_update_. template generate_update_dynamics_measures<
+                auto site_update_related_measures = site_update_ptr_-> template generate_update_dynamics_measures<
                     SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(site_update_related_measures);
 
@@ -166,56 +166,56 @@ namespace lm_impl {
             }
 
             auto& get_sampler() const {
-                return sampler_;
+                return sampler_ptr_;
             }
 
             auto& get_sampler() {
-                return sampler_;
+                return sampler_ptr_;
             }
 
             auto& get_mcmc_model() const {
-                return mcmc_model_;
+                return mcmc_model_ptr_;
             }
 
             auto& get_mcmc_model() {
-                return mcmc_model_;
+                return mcmc_model_ptr_;
             }
 
             auto& get_mcmc_method() const {
-                return mcmc_method_;
+                return mcmc_method_ptr_;
             }
 
             auto& get_mcmc_method() {
-                return mcmc_method_;
+                return mcmc_method_ptr_;
             }
 
             auto& get_site_update() const {
-                return site_update_;
+                return site_update_ptr_;
             }
 
             auto& get_site_update() {
-                return site_update_;
+                return site_update_ptr_;
             }
 
             auto energy() const {
-                return mcmc_model_.get_potential(site_);
+                return mcmc_model_ptr_->get_potential(site_);
             }
 
             auto drift_term() const {
-                return mcmc_model_.get_drift_term(site_);
+                return mcmc_model_ptr_->get_drift_term(site_);
             }
 
             void normalize(T &site_elem) {
-                site_elem = mcmc_model_.normalize_state(site_elem);
+                site_elem = mcmc_model_ptr_->normalize_state(site_elem);
             }
 
             typedef T SiteType;
 
         protected:
-            Sampler sampler_;
-            Model mcmc_model_;
-            Method mcmc_method_;
-            UpdateDynamics site_update_;
+            std::unique_ptr<Sampler> sampler_ptr_;
+            std::unique_ptr<Model> mcmc_model_ptr_;
+            std::unique_ptr<Method> mcmc_method_ptr_;
+            std::unique_ptr<UpdateDynamics> site_update_ptr_;
 
             T site_;
 
@@ -229,7 +229,7 @@ namespace lm_impl {
         template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
         void
         SiteSystem<T, Model, Method, UpdateDynamics, Sampler>::initialize_site() {
-            site_ = sampler_.template random_state<T>();
+            site_ = sampler_ptr_->template random_state<T>();
         }
 
         template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>

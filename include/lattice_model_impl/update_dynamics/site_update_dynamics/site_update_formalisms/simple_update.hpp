@@ -19,9 +19,6 @@ namespace lm_impl {
             explicit SiteSimpleUpdate() : SiteSimpleUpdate(json{}) {}
 
             template<typename Site>
-            void initialize_update(const Site &site) {}
-
-            template<typename Site>
             void update(Site &site, uint measure_interval = 1) {
                 for (uint k = 0; k < measure_interval; k++) {
                     site.get_system_representation() = update_system_site(site.get_mcmc_method(), site.get_system_representation());

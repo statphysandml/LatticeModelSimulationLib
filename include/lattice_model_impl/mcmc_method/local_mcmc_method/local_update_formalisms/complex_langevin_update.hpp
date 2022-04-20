@@ -17,9 +17,6 @@ namespace lm_impl {
                 T new_site = {site.real(), site.imag()};
                 new_site.real(site.real() - epsilon * drift_term.real() + sqrt2epsilon * this->normal_(mcmc::util::g_gen));
                 new_site.imag(site.imag() - epsilon * drift_term.imag());
-
-                std::cout << new_site.real() << " + i " <<  new_site.imag() << std::endl;
-
                 return this->model_ptr_->normalize_state(new_site);
             }
         };

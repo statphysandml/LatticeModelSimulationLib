@@ -24,7 +24,7 @@ namespace lm_impl {
 
             template<typename System>
             void initialize(System &system) {
-                model_ptr_ = &system.get_mcmc_model();
+                model_ptr_ = system.get_mcmc_model().get();
             }
 
             double get_stepsize() const
