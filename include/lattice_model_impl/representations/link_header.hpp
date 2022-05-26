@@ -8,5 +8,6 @@
 #include "links/u1.hpp"
 #include "links/su2.hpp"
 #include "links/on.hpp"
+#include "links/onelink_su3.hpp"
 
 #endif //LATTICEMODELIMPLEMENTATIONS_LINK_HEADER_HPP
