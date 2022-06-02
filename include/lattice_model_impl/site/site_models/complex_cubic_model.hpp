@@ -5,7 +5,7 @@
 #ifndef MAIN_COMPLEX_CUBIC_MODEL_HPP
 #define MAIN_COMPLEX_CUBIC_MODEL_HPP
 
-#include "../site_model.hpp"
+//#include "../site_model.hpp"
 #include "mcmc_simulation/util/random.hpp"
 
 
