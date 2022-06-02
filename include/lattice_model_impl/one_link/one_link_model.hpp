@@ -2,8 +2,8 @@
 // Created by lukas on 05.11.19.
 //
 
-#ifndef MAIN_LINK_LATTICE_MODEL_HPP
-#define MAIN_LINK_LATTICE_MODEL_HPP
+#ifndef MAIN_ONE_LINK_MODEL_HPP
+#define MAIN_ONE_LINK_MODEL_HPP
 
 #include "../lattice/mcmc_model_base.hpp"
 
@@ -61,4 +61,4 @@ namespace lm_impl {
 }
 
 
-#endif //MAIN_LINK_LATTICE_MODEL_HPP
+#endif //MAIN_ONE_LINK_MODEL_HPP
