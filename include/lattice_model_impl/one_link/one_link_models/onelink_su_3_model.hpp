@@ -8,12 +8,14 @@
 #include "../../../external/Eigen/Dense"
 #include "../../../external/unsupported/Eigen/MatrixFunctions"
 
+#include "../one_link_model.hpp"
+
 using namespace Eigen;
 using namespace std::literals;
 
 
 namespace lm_impl {
-    namespace site_system {
+    namespace one_link_system {
 
 /*
         template<typename SB>
@@ -65,7 +67,7 @@ namespace lm_impl {
         };
 */
 
-        class OneLinkSU3Model : public lm_impl::model::MCMCModelBase<OneLinkSU3Model> {
+        class OneLinkSU3Model : public OneLinkModel<OneLinkSU3Model> { //public lm_impl::model::MCMCModelBase<OneLinkSU3Model> {
         public:
             explicit OneLinkSU3Model(const json params):
                 MCMCModelBase(params),
@@ -341,4 +343,4 @@ namespace lm_impl {
     }
 }
 
-#endif //LATTICEMODELIMPLEMENTATIONS_COMPLEX_POLYNOMIAL_MODEL_HPP
+#endif //MAIN_ONELINK_SU_3_MODEL_HPP
