@@ -13,6 +13,7 @@
 using namespace std::literals;
 
 namespace lm_impl {
+
     namespace link {
 
         double compute_x0(double beta, double a);

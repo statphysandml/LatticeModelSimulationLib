@@ -2,8 +2,8 @@
 // Created by lukas on 10.09.20.
 //
 
-#ifndef LATTICEMODELIMPLEMENTATIONS_SYSTEM_MEASURES_HPP
-#define LATTICEMODELIMPLEMENTATIONS_SYSTEM_MEASURES_HPP
+#ifndef LATTICEMODELIMPLEMENTATIONS_LATTICE_MEASURES_HPP
+#define LATTICEMODELIMPLEMENTATIONS_LATTICE_MEASURES_HPP
 
 #include <mcmc_simulation/measure_policy.hpp>
 #include <mcmc_simulation/util/random.hpp>

@@ -249,8 +249,8 @@ namespace lm_impl {
             for (auto &measure_name :  measure_names)
                 if (measure_name == "Energy")
                     site_measures.push_back(std::make_unique<util::system_measures::MeasureEnergyPolicy<SiteSys>>());
-                else if (measure_name == "Drift")
-                    site_measures.push_back(std::make_unique<util::system_measures::MeasureDriftPolicy<SiteSys>>());
+ //               else if (measure_name == "Drift")
+ //                   site_measures.push_back(std::make_unique<util::system_measures::MeasureDriftPolicy<SiteSys>>());
             return site_measures;
         }
 
