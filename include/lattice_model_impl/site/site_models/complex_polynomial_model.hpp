@@ -1,75 +1,45 @@
-//
-// Created by lukas on 02.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_COMPLEX_POLYNOMIAL_MODEL_HPP
 #define LATTICEMODELIMPLEMENTATIONS_COMPLEX_POLYNOMIAL_MODEL_HPP
 
-#include "../site_model.hpp"
+
+#include "../../lattice/mcmc_model_base.hpp"
 #include "mcmc_simulation/util/random.hpp"
 
 
 namespace lm_impl {
     namespace site_system {
-
-        class ComplexPolynomialModel;
-
-
-        class ComplexPolynomialModelParameters : public SiteModelParameters {
+        class ComplexPolynomialModel : public lm_impl::model::MCMCModelBase<ComplexPolynomialModel> {
         public:
-            explicit ComplexPolynomialModelParameters(const json params_) : SiteModelParameters(params_),
-                                                                            sigma(std::complex<double> {get_entry<double>("sigma_real", 0.0),
-                                                                                    get_entry<double>("sigma_imag", 0.0)}),
-                                                                            lambda(std::complex<double> {get_entry<double>("lambda_real", 0.0),
-                                                                                    get_entry<double>("lambda_imag", 0.0)}),
-                                                                            h(std::complex<double> {get_entry<double>("h_real", 0.0),
-                                                                                    get_entry<double>("h_imag", 0.0)})
+            explicit ComplexPolynomialModel(const json params):
+                MCMCModelBase(params),
+                lambda_(std::complex<double> {get_entry<double>("lambda_real", 1.0), get_entry<double>("lambda_imag", 0.0)}),
+                sigma_(std::complex<double> {get_entry<double>("sigma_real", 1.0), get_entry<double>("sigma_imag", 1.0)}),
+                h_(std::complex<double> {get_entry<double>("h_real", 0.0), get_entry<double>("h_imag", 0.0)})
             {}
 
-            explicit ComplexPolynomialModelParameters(double lambda_real_, double lambda_imag_, double sigma_real_,
-                                                      double sigma_imag_, double h_real_, double h_imag_)
-                    : ComplexPolynomialModelParameters(json{
-                    {"lambda_real", lambda_real_},
-                    {"lambda_imag", lambda_imag_},
-                    {"sigma_real", sigma_real_},
-                    {"sigma_imag", sigma_imag_},
-                    {"h_real", h_real_},
-                    {"h_imag", h_imag_},
+            explicit ComplexPolynomialModel(double lambda_real=1.0, double lambda_imag=0.0, double sigma_real=1.0,
+                double sigma_imag=1.0, double h_real=0.0, double h_imag=0.0):
+                ComplexPolynomialModel(json{
+                    {"lambda_real", lambda_real},
+                    {"lambda_imag", lambda_imag},
+                    {"sigma_real", sigma_real},
+                    {"sigma_imag", sigma_imag},
+                    {"h_real", h_real},
+                    {"h_imag", h_imag},
             }) {}
 
-            static std::string name() {
-                return "ComplexPolynomialModel";
-            }
-
-            typedef ComplexPolynomialModel Model;
-
-        private:
-            friend class ComplexPolynomialModel;
-
-            const std::complex<double> sigma;
-            const std::complex<double> lambda;
-            const std::complex<double> h;
-        };
-
-
-        class ComplexPolynomialModel : public SiteModel<ComplexPolynomialModel> {
-        public:
-            explicit ComplexPolynomialModel(const ComplexPolynomialModelParameters &mp_) : mp(mp_) {}
-
             std::complex<double> get_potential(const std::complex<double> site) const {
-                return 0.5 * mp.sigma * std::pow(site, 2) + 0.25 * mp.lambda * std::pow(site, 4) + mp.h * site;
+                return 0.5 * sigma_ * std::pow(site, 2) + 0.25 * lambda_ * std::pow(site, 4) + h_ * site;
             }
 
             std::complex<double> get_drift_term(const std::complex<double> site) const {
-                return mp.sigma * site + mp.lambda * std::pow(site, 3) + mp.h;
-            }
-
-            std::complex<double> get_second_order_drift_term(const std::complex<double> site) const {
-                return 3.0 * mp.lambda * std::pow(site, 2) + mp.sigma;
+                return sigma_ * site + lambda_ * std::pow(site, 3) + h_;
             }
 
         private:
-            const ComplexPolynomialModelParameters &mp;
+            std::complex<double> lambda_;
+            std::complex<double> sigma_;
+            std::complex<double> h_;
         };
 
     }

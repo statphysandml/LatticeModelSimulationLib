@@ -32,9 +32,6 @@ namespace lm_impl {
             explicit MemoryParallelUpdate(const MemoryParallelUpdateParameters<SiteType> &lp_) : lp(lp_) {}
 
             template<typename Lattice>
-            void initialize_update(const Lattice &lattice) {}
-
-            template<typename Lattice>
             void update(Lattice &lattice, uint measure_interval = 1) {
                 // ToDo: Introduce boost!
                 for (auto j = 0; j < measure_interval; j++) {
@@ -60,7 +57,7 @@ namespace lm_impl {
             // ToDo: Can be defined only once outside of the class
 
             /* template<typename SB>
-            struct MeasureDetailedBalanceAccuracyPolicy : public mcmc::common_measures::MeasurePolicy<SB> {
+            struct MeasureDetailedBalanceAccuracyPolicy : public mcmc::measures::Measure<SB> {
             public:
                 explicit MeasureDetailedBalanceAccuracyPolicy(std::vector<SiteType> &prev_lattice_) : prev_lattice(
                         prev_lattice_) {}
@@ -78,9 +75,9 @@ namespace lm_impl {
             };
 
             template<typename SB>
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>>
+            std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>
             generate_update_dynamics_measures(const json &measure_names) {
-                std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<SB>>> measures{};
+                std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>> measures{};
                 for (auto &measure_name :  measure_names)
                     if (measure_name == "DetailedBalanceAccuracy")
                         measures.push_back(

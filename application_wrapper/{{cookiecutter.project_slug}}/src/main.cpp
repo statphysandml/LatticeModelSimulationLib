@@ -53,9 +53,9 @@ void custom_main()
     typedef lm_impl::lattice_system::ONModelParameters ModelParams;
 
     typedef lm_impl::link::ON<double, 4> BasicType;
-    typedef lm_impl::mcmc_update::MetropolisUpdateParameters<ModelParams, lm_impl::lattice_system::ONModelSampler> MCMCUpdateParams;
+    typedef lm_impl::mcmc_method::MetropolisUpdateParameters<ModelParams, lm_impl::lattice_system::ONModelSampler> MCMCMethodParams;
     typedef lm_impl::update_dynamics::SequentialUpdateParameters UpdateDynamicsParams;
-    typedef lm_impl::lattice_system::LatticeParameters< BasicType, ModelParams, MCMCUpdateParams, UpdateDynamicsParams> SystemBaseParams;
+    typedef lm_impl::lattice_system::LatticeParameters< BasicType, ModelParams, MCMCMethodParams, UpdateDynamicsParams> SystemBaseParams;
 
     std::string model_name = "ONModelMetropolis";
     std::string rel_config_path = "/configs/" + model_name + "/";
@@ -63,7 +63,7 @@ void custom_main()
 
     std::vector<int> dimensions {4, 4};
 
-    MCMCUpdateParams mcmc_update_parameters(0.1);
+    MCMCMethodParams mcmc_method_parameters(0.1);
 
     ModelParams model_parameters(json{
         {"kappa", 1.0},
@@ -77,7 +77,7 @@ void custom_main()
                     {"dimensions", dimensions},
                     {"measures", {"Config", "Mean", "SecondMoment", "Energy"}},
                     {ModelParams::param_file_name(), model_parameters.get_json()},
-                    {MCMCUpdateParams::param_file_name(), mcmc_update_parameters.get_json()},
+                    {MCMCMethodParams::param_file_name(), mcmc_method_parameters.get_json()},
                     {UpdateDynamicsParams::param_file_name(), update_dynamics_parameters.get_json()}}
     );
 

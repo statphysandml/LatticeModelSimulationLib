@@ -1,98 +1,82 @@
-//
-// Created by lukas on 17.10.19.
-//
-
 #ifndef MAIN_ISING_MODEL_HPP
 #define MAIN_ISING_MODEL_HPP
 
-#include "../lattice_model.hpp"
-#include "mcmc_simulation/util/random.hpp"
-#include "param_helper/json.hpp"
+#include <mcmc_simulation/util/random.hpp>
+#include <param_helper/json.hpp>
 
-namespace lm_impl
-{
-    namespace lattice_system
-    {
+#include "../mcmc_model_base.hpp"
+#include "../../sampler/sampler_base.hpp"
 
-        class IsingModel;
-
-        class IsingModelParameters : public LatticeModelParameters {
+namespace lm_impl {
+    namespace lattice_system {
+        class IsingModel : public lm_impl::model::MCMCModelBase<IsingModel>
+        {
         public:
-            explicit IsingModelParameters(const json params_) : LatticeModelParameters(params_),
-                                                                beta(get_entry<double>("beta", 0.4)),
-                                                                J(get_entry<double>("J", 1.0)),
-                                                                h(get_entry<double>("h", 0.0))
-            {
+            explicit IsingModel(const json params):
+                MCMCModelBase(params),
+                beta_(get_entry<double>("beta", 0.4)),
+                J_(get_entry<double>("J", 1.0)),
+                h_(get_entry<double>("h", 0.0))
+            {}
 
-            }
-
-            explicit IsingModelParameters(double beta_, double J_, double h_) : IsingModelParameters(json{
-                    {"beta", beta_},
-                    {"J", J_},
-                    {"h", h_}
+            IsingModel(double beta=0.4, double J=1.0, double h=0.0) : IsingModel(json{
+                    {"beta", beta},
+                    {"J", J},
+                    {"h", h}
             })
             {}
 
-            const static std::string name() {
-                return "IsingModel";
-            }
-
-            typedef IsingModel Model;
-
-        private:
-            friend class IsingModel;
-
-            const double beta;
-            const double J;
-            const double h;
-        };
-
-
-        class IsingModel : public LatticeModel< IsingModel >
-        {
-        public:
-            explicit IsingModel(const IsingModelParameters &mp_) : mp(mp_) {}
-
             template<typename T, typename T2=double_t>
-            T2 get_potential(const T site, const std::vector<T*> neighbours)
+            T2 get_potential(const T site, const std::vector<T*> neighbours) const
             {
                 double coupling = 0;
                 for(size_t i = 0; i < neighbours.size(); i++) {
                     coupling += *neighbours[i];
                 }
-                return  -1.0 * mp.beta * site * (mp.J * coupling + mp.h);
+                return  -1.0 * beta_ * site * (J_ * coupling + h_);
             }
 
             template<typename T, typename T2=double_t>
-            T2 get_energy_per_lattice_elem(const T site, const std::vector<T*> neighbours)
+            T2 get_energy_per_lattice_elem(const T site, const std::vector<T*> neighbours) const
             {
                 double coupling = 0;
                 // Only neighbours in positive direction
                 for(size_t i = 0; i < neighbours.size(); i += 2) {
                     coupling += *neighbours[i];
                 }
-                return  -1.0 * mp.beta * site * (mp.J * coupling + mp.h);
+                return  -1.0 * beta_ * site * (J_ * coupling + h_);
             }
 
         private:
-            const IsingModelParameters &mp;
+            double beta_;
+            double J_;
+            double h_;
         };
 
-        struct IsingModelSampler //  : public Sampler
+        struct IsingModelSampler : public lm_impl::sampler::SamplerBase<IsingModelSampler>
         {
-            IsingModelSampler(const double eps_)
+            explicit IsingModelSampler(json params):
+                SamplerBase<IsingModelSampler>(params)
             {
-                uniint = std::uniform_int_distribution<int>(0, 1);
+                uniint_ = std::uniform_int_distribution<int>(0, 1);
+            }
+
+            explicit IsingModelSampler() : IsingModelSampler(json{})
+            {}
+
+            template<typename T>
+            T cold_sample() {
+                return 1;
             }
 
             template<typename T>
-            T random_state()
+            T random_sample()
             {
-                return 2 * uniint(mcmc::util::gen) - 1;
+                return 2 * uniint_(mcmc::util::g_gen) - 1;
             }
 
             template<typename T>
-            T propose_state(T site)
+            T propose_sample(T site)
             {
                 return -1 * site;
             }
@@ -102,13 +86,8 @@ namespace lm_impl
                 return 0.0;
             }
 
-            const static std::string name() {
-                return "IsingModelSampler";
-            }
-
-            std::uniform_int_distribution<int> uniint;
+            std::uniform_int_distribution<int> uniint_;
         };
-
     }
 }
 

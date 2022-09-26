@@ -7,7 +7,7 @@ project(LatticeModelSimulationLib VERSION 0.0.1 LANGUAGES CXX)
 include(GNUInstallDirs)
 
 # Define the minimum C++ standard that is required
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -42,8 +42,7 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ext/MCMCSimulationLib/CMakeLists.txt")
 endif()
 
 
-configure_file(./ext/MCMCSimulationLib/include/execution/config.h.in ../ext/MCMCSimulationLib/include/execution/config.h @ONLY)
-# configure_file(./include/execution/config.h.in ../include/execution/config.h @ONLY)
+# configure_file(./ext/MCMCSimulationLib/include/cluster_support/config.h.in ../# ext/MCMCSimulationLib/include/execution/config.h @ONLY)
 
 # Boost
 FIND_PACKAGE( Boost 1.67 REQUIRED COMPONENTS filesystem)
@@ -54,12 +53,24 @@ endif()
 
 # Compilation options
 
-# compile the external submodule
+# compile external submodules
 add_subdirectory(ext/MCMCSimulationLib)
+include_directories(ext/MCMCSimulationLib/ext/ParamHelper/include/)
 include_directories(ext/MCMCSimulationLib/include)
 
 # compile the library
 add_subdirectory(src)
+
+if(BUILD_PYTHON_BINDINGS AND NOT RUN_WITH_PYTHON_BACKEND)
+    message("Integrate python for python_bindings")
+    # Add Python bindings
+    add_subdirectory(ext/MCMCSimulationLib/ext/pybind11)
+endif()
+
+if(BUILD_PYTHON_BINDINGS)
+    # Python virtual environment
+    # add_subdirectory(python)
+endif()
 
 
 # compile the tests
@@ -74,7 +85,6 @@ if(BUILD_DOCS)
   # Add the documentation
   add_subdirectory(doc)
 endif()
-
 
 # Add an alias target for use if this project is included as a subproject in another project
 add_library(latticemodelsimulationlib::latticemodelsimulationlib ALIAS latticemodelsimulationlib)
@@ -102,3 +112,14 @@ install(
 # This prints a summary of found dependencies
 include(FeatureSummary)
 feature_summary(WHAT ALL)
+
+
+# Copied from MCMCSimulationLib
+
+# find_package(Boost 1.67 REQUIRED COMPONENTS filesystem)
+# if(Boost_FOUND)
+#     include_directories(${Boost_INCLUDE_DIRS})
+#     message("Boost = ${Boost_INCLUDE_DIRS}")
+# endif()
+
+# target_link_libraries(ScalarTheoryGPU mcmcsimulationlib::mcmcsimulationlib paramhelper::paramhelper Boost::filesystem ${target_link_libraries_python_appendix})

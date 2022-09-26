@@ -1,275 +1,303 @@
-//
-// Created by lukas on 09.10.19.
-//
-
 #ifndef MAIN_LATTICE_HPP
 #define MAIN_LATTICE_HPP
 
-#include "mcmc_simulation/header.hpp"
+
+#include <mcmc_simulation/header.hpp>
+#include <param_helper/params.hpp>
+
 
 #include "../util/measures/lattice_measures.hpp"
+
 
 namespace lm_impl {
     namespace lattice_system {
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        class LatticeSystem;
-
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        class LatticeParameters : public mcmc::simulation::SystemBaseParameters {
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        class LatticeSystem : public mcmc::simulation::MeasureSystemBase<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>> {
         public:
-            explicit LatticeParameters(const json params_) : SystemBaseParameters(params_) {
+            explicit LatticeSystem(const json params) : mcmc::simulation::MeasureSystemBase<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(params)
+            {
+                dimensions_ = this->template get_entry<std::vector<int>>("dimensions", std::vector<int>{4, 4});
+                lattice_action_type_ = this->template get_entry<std::string>("lattice_action_type", "nearest_neighbour");
 
-                dimensions = get_entry<std::vector<int> >("dimensions", std::vector<int>{4, 4});
-                lattice_action_type = get_entry<std::string>("lattice_action_type", "nearest_neighbour");
-
-                n_sites = 1;
-                dim_mul.push_back(n_sites);
-                for (auto dim: dimensions) {
-                    n_sites *= dim;
-                    dim_mul.push_back(n_sites);
+                n_sites_ = 1;
+                dim_mul_.push_back(n_sites_);
+                for (auto dim: dimensions_) {
+                    n_sites_ *= dim;
+                    dim_mul_.push_back(n_sites_);
                 }
-                dimension = dimensions.size();
+                dimension_ = dimensions_.size();
 
-                if (lattice_action_type == "nearest_neighbour")
-                    elem_per_site = 1;
+                if(lattice_action_type_ == "nearest_neighbour")
+                    elem_per_site_ = 1;
                 else
-                    elem_per_site = dimension;
-                size = n_sites * elem_per_site;
+                    elem_per_site_ = dimension_;
 
-                model_parameters = std::make_unique<ModelParameters>(
-                        mcmc::util::generate_parameter_class_json<LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>, ModelParameters>(
-                                *this, model_parameters->param_file_name()));
+                sampler_ptr_ = std::make_unique<Sampler>(
+                    mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, Sampler>(
+                        *this, Sampler::name()));
 
-                update_parameters = std::make_unique<UpdateFormalismParameters>(
-                        mcmc::util::generate_parameter_class_json<LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>, UpdateFormalismParameters>(
-                                *this, update_parameters->param_file_name()));
+                mcmc_model_ptr_ = std::make_unique<Model>(
+                    mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, Model>(
+                        *this, Model::name()));
 
-                lattice_update_parameters = std::make_unique<LatticeUpdateFormalismParameters>(
-                        mcmc::util::generate_parameter_class_json<LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>, LatticeUpdateFormalismParameters>(
-                                *this, lattice_update_parameters->param_file_name()));
-            }
+                mcmc_method_ptr_ = std::make_unique<Method>(
+                    mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, Method>(
+                        *this, Method::name()));
 
-            typedef LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> System;
-
-            /* static std::string name() { -> definition not allowed since python program wont find the system parameters
-                return "lattice";
-            } */
-
-            std::unique_ptr<System> generate() {
-                return std::make_unique<System>(*this);
-            }
-
-            void write_to_file(const std::string &rel_config_path) override {
-                // ToDo: Write function in parameters that accepts various objects and does the same operation as is done here for an arbitrary number of parameters -> parameters can even be collected in a vector of std::vector<*Parameteres>
-
-                std::string model_params_path = get_entry<std::string>(model_parameters->param_file_name() + "_path",
-                                                                       rel_config_path);
-                model_parameters->write_to_file(model_params_path);
-
-                std::string update_formalism_params_path = get_entry<std::string>(
-                        update_parameters->param_file_name() + "_path", rel_config_path);
-                update_parameters->write_to_file(update_formalism_params_path);
-
-                std::string lattice_update_params_path = get_entry<std::string>(
-                        lattice_update_parameters->param_file_name() + "_path", rel_config_path);
-                lattice_update_parameters->write_to_file(lattice_update_params_path);
-
-                json model_parameters_ = model_parameters->get_json();
-                delete_entry(model_parameters->param_file_name());
-
-                json update_parameters_ = update_parameters->get_json();
-                delete_entry(update_parameters->param_file_name());
-
-                json lattice_update_parameters_ = lattice_update_parameters->get_json();
-                delete_entry(lattice_update_parameters->param_file_name());
-
-                Parameters::write_to_file(rel_config_path, name());
-
-                add_entry(model_parameters->param_file_name(), model_parameters_);
-                add_entry(update_parameters->param_file_name(), update_parameters_);
-                add_entry(lattice_update_parameters->param_file_name(), lattice_update_parameters_);
-            }
-
-            Parameters build_expanded_raw_parameters() const override {
-                Parameters parameters(params);
-                parameters.add_entry(model_parameters->param_file_name(), model_parameters->get_json());
-                parameters.add_entry(update_parameters->param_file_name(), update_parameters->get_json());
-                parameters.add_entry(lattice_update_parameters->param_file_name(),
-                                     lattice_update_parameters->get_json());
-                return parameters;
-            }
-
-            const std::vector<int> &get_dimensions() const {
-                return dimensions;
-            }
-
-            const auto &get_dimension() const {
-                return dimension;
-            }
-
-            const uint &get_elems_per_site() const {
-                return elem_per_site;
-            }
-
-            // Only used for testing in simulation.hpp
-            typedef ModelParameters MP_;
-            typedef UpdateFormalismParameters UP_;
-
-        protected:
-            template<typename, typename, typename, typename>
-            friend
-            class LatticeSystem;
-
-            std::unique_ptr<ModelParameters> model_parameters;
-            std::unique_ptr<UpdateFormalismParameters> update_parameters;
-            std::unique_ptr<LatticeUpdateFormalismParameters> lattice_update_parameters;
-
-            uint n_sites; // Total number of sites
-            uint size; // Total number of elements on lattice
-            std::vector<int> dimensions; // Different dimensions
-            std::vector<int> dim_mul; // Accumulated different dimensions (by product)
-            int dimension; // Number of dimensions
-            uint elem_per_site; // Number of elements per site (is equal to dimension), but only for the link model
-
-            std::string lattice_action_type;
-        };
-
-
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        class LatticeSystem
-                : public mcmc::simulation::SystemBase<LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> > {
-        public:
-            explicit LatticeSystem(
-                    const LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> &lp_)
-                    : lp(lp_) {
-                model = std::make_unique<typename ModelParameters::Model>(*lp.model_parameters);
-                update_formalism = std::make_unique<typename UpdateFormalismParameters::MCMCUpdate>(
-                        *lp.update_parameters, *model);
+                lattice_update_ptr_ = std::make_unique<UpdateDynamics>(
+                    mcmc::util::generate_parameter_class_json<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>, UpdateDynamics>(
+                        *this, UpdateDynamics::name()));
 
                 initialize_lattice();
-                if (lp.lattice_action_type == "plaquette")
+                if (lattice_action_type_ == "plaquette")
                     set_plaquette_neighbours();
                 else
                     set_nearest_neighbours();
 
-                lattice_update = std::make_unique<typename LatticeUpdateFormalismParameters::UpdateDynamics>(
-                        *lp.lattice_update_parameters);
+                sampler_ptr_->init(*this);
+                mcmc_model_ptr_->init(*this);
+                mcmc_method_ptr_->init(*this);
+                lattice_update_ptr_->init(*this);
+            }
+            
+            LatticeSystem(
+                    Sampler sampler=Sampler(),
+                    Model mcmc_model=Model(),
+                    Method mcmc_method=Method(),
+                    UpdateDynamics lattice_update=UpdateDynamics(),
+                    const std::vector<int> dimensions=std::vector<int> {4, 4},
+                    const std::string lattice_action_type="nearest_neighbour",
+                    const std::vector<std::string> measures=std::vector<std::string> {}
+            ) : LatticeSystem(
+                json {
+                    {Sampler::name(), sampler.get_json()},
+                    {Model::name(), mcmc_model.get_json()},
+                    {Method::name(), mcmc_method.get_json()},
+                    {UpdateDynamics::name(), lattice_update.get_json()},
+                    {"dimensions", dimensions},
+                    {"lattice_action_type", lattice_action_type},
+                    {"measures", measures}
+                }
+            )
+            {}
 
-                update_formalism->initialize(*this);
-                lattice_update->initialize(*this);
+            typedef LatticeSystem<T, Model, Method, UpdateDynamics, Sampler> System;
+
+            void write_to_file(const std::string rel_config_path) override {
+                std::string sampler_params_path = this->template get_entry<std::string>(
+                    Sampler::name() + "_path", rel_config_path);
+                sampler_ptr_->write_to_file(sampler_params_path);
+
+                std::string mcmc_model_params_path = this->template get_entry<std::string>(
+                    Model::name() + "_path", rel_config_path);
+                mcmc_model_ptr_->write_to_file(mcmc_model_params_path);
+
+                std::string mcmc_method_params_path = this->template get_entry<std::string>(
+                    Method::name() + "_path", rel_config_path);
+                mcmc_method_ptr_->write_to_file(mcmc_method_params_path);
+
+                std::string lattice_update_params_path = this->template get_entry<std::string>(
+                    UpdateDynamics::name() + "_path", rel_config_path);
+                lattice_update_ptr_->write_to_file(lattice_update_params_path);
+
+                json sampler_parameters = sampler_ptr_->get_json();
+                this->template delete_entry(Sampler::name());
+
+                json mcmc_model_parameters = mcmc_model_ptr_->get_json();
+                this->template delete_entry(Model::name());
+
+                json update_parameters = mcmc_method_ptr_->get_json();
+                this->template delete_entry(Method::name());
+
+                json lattice_update_parameters = lattice_update_ptr_->get_json();
+                this->template delete_entry(UpdateDynamics::name());
+
+                param_helper::params::Parameters::write_to_file(rel_config_path, this->name());
+
+                this->template add_entry(Sampler::name(), sampler_parameters);
+                this->template add_entry(Model::name(), mcmc_model_parameters);
+                this->template add_entry(Method::name(), update_parameters);
+                this->template add_entry(UpdateDynamics::name(), lattice_update_parameters);
             }
 
-            void update_step(uint measure_interval) {
-                lattice_update->operator()(*this, measure_interval);
+            param_helper::params::Parameters build_expanded_raw_parameters() const override {
+                param_helper::params::Parameters parameters(this->params_);
+                parameters.add_entry(Sampler::name(), sampler_ptr_->get_json());
+                parameters.add_entry(Model::name(), mcmc_model_ptr_->get_json());
+                parameters.add_entry(Method::name(), mcmc_method_ptr_->get_json());
+                parameters.add_entry(UpdateDynamics::name(), lattice_update_ptr_->get_json());
+                return parameters;
+            }
+
+            const std::vector<int> &get_dimensions() const {
+                return dimensions_;
+            }
+
+            const auto &get_dimension() const {
+                return dimension_;
+            }
+
+            const uint &get_elems_per_site() const {
+                return elem_per_site_;
             }
 
             void initialize(std::string starting_mode) {
-                // Needs to be called at the end so that generated objects (dynamics, model, etc.) can already be used!
-                this->generate_measures(lp.measures);
+                // Needs to be called at the end so that generated objects (dynamics, mcmc_model, etc.) can already be used!
+                this->generate_measures(this->measure_names());
 
-                std::cout << "Note : Cold start not possible, so far" << std::endl;
+                if(starting_mode == "hot")
+                    for (auto &site : lattice_)
+                        site = sampler_ptr_->template random_state<T>();
+                else // starting_mode == "cold"
+                    for (auto &site : lattice_)
+                        site = sampler_ptr_->template cold_state<T>();
+            }
+
+            void update_step(uint measure_interval) {
+                lattice_update_ptr_->operator()(*this, measure_interval);
             }
 
             // Returns the total number of elements of the lattice - (equals the total number of sites if elem_per_site=1)
             auto get_size() const {
-                return lp.size;
-            }
-
-            auto &at(int i) {
-                return lattice[i];
+                return n_sites_ * elem_per_site_;
             }
 
             auto at(int i) const {
-                return lattice[i];
+                return lattice_[i];
+            }
+
+            auto &at(int i) {
+                return lattice_[i];
             }
 
             auto get_system_representation() const {
-                return lattice;
+                return lattice_;
             }
 
             auto &get_system_representation() {
-                return lattice;
+                return lattice_;
             }
 
             auto get_elem_per_site() const {
-                return lp.elem_per_site;
+                return elem_per_site_;
             }
 
             auto &neighbours_at(int i) {
-                return neighbours[i];
+                return neighbours_[i];
             }
 
             auto neighbours_at(int i) const {
-                return neighbours[i];
+                return neighbours_[i];
             }
 
             auto &get_neighbours() {
-                return neighbours;
+                return neighbours_;
             }
 
             auto get_neighbours() const {
-                return neighbours;
+                return neighbours_;
             }
 
-            void generate_measures(const json &measure_names) override {
-                auto lattice_related_measures = generate_lattice_system_measures(lp.measures);
+            void generate_measures(const std::vector<std::string> &measure_names) override {
+                this->measurements_.clear();
+                auto lattice_related_measures = generate_lattice_system_measures(this->measure_names());
                 this->concat_measures(lattice_related_measures);
 
-                auto model_related_measures = model->template generate_model_measures<LatticeSystem,
-                        LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>>(lp);
-                this->concat_measures(model_related_measures);
+                auto sampler_related_measures = sampler_ptr_-> template generate_sampler_measures<
+                    LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
+                this->concat_measures(sampler_related_measures);
 
-                auto mcmc_update_related_measures = update_formalism->template generate_mcmc_update_measures<LatticeSystem,
-                        LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>>(lp);
-                this->concat_measures(mcmc_update_related_measures);
+                auto mcmc_model_related_measures = mcmc_model_ptr_-> template generate_mcmc_model_measures<
+                    LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
+                this->concat_measures(mcmc_model_related_measures);
 
-                auto lattice_update_related_measures = lattice_update->template generate_update_dynamics_measures<LatticeSystem,
-                        LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>>(lp);
+                auto mcmc_method_related_measures = mcmc_method_ptr_-> template generate_mcmc_method_measures<
+                    LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
+                this->concat_measures(mcmc_method_related_measures);
+
+                auto lattice_update_related_measures = lattice_update_ptr_-> template generate_update_dynamics_measures<
+                    LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>(*this);
                 this->concat_measures(lattice_update_related_measures);
 
-                auto common_defined_measures = this->generate_systembase_measures(lp.measures);
+                auto common_defined_measures = this->generate_systembase_measures(this->measure_names());
                 this->concat_measures(common_defined_measures);
             }
 
-            auto &get_update_formalism() {
-                return *update_formalism;
+            auto& get_sampler() const {
+                return sampler_ptr_;
+            }
+
+            auto& get_sampler() {
+                return sampler_ptr_;
+            }
+
+            auto& get_mcmc_model() const {
+                return mcmc_model_ptr_;
+            }
+
+            auto& get_mcmc_model() {
+                return mcmc_model_ptr_;
+            }
+
+            auto& get_mcmc_method() const {
+                return mcmc_method_ptr_;
+            }
+
+            auto& get_mcmc_method() {
+                return mcmc_method_ptr_;
+            }
+
+            auto& get_lattice_update() const {
+                return lattice_update_ptr_;
+            }
+
+            auto& get_lattice_update() {
+                return lattice_update_ptr_;
             }
 
             auto energy() const {
-                decltype(model->get_energy_per_lattice_elem(lattice[0], neighbours[0])) energy(0);
+                decltype(mcmc_model_ptr_->get_energy_per_lattice_elem(lattice_[0], neighbours_[0])) energy(0);
                 for (uint i = 0; i < get_size(); i++) {
-                    energy += model->get_energy_per_lattice_elem(lattice[i], neighbours[i]);
+                    energy += mcmc_model_ptr_->get_energy_per_lattice_elem(lattice_[i], neighbours_[i]);
                 }
                 return energy;
             }
 
             auto drift_term() const {
-                std::cout << "Drift term computation needs to be implemented here" << std::endl;
+                std::cerr << "Drift term computation needs to be implemented here" << std::endl;
                 std::exit(EXIT_FAILURE);
-                decltype(model->get_potential(lattice[0], neighbours[0])) drift_term(0);
+                decltype(mcmc_model_ptr_->get_potential(lattice_[0], neighbours_[0])) drift_term(0);
                 for (uint i = 0; i < get_size(); i++) {
                     // ToDo: How can this be integrated?
-                    // drift_term += model->get_drift_term(lattice[i], neighbours[i]);
+                    // drift_term += mcmc_model.get_drift_term(lattice_[i], neighbours[i]);
                 }
                 return drift_term;
             }
 
             void normalize(std::vector<T> &lattice_grid) {
                 for (auto &elem : lattice_grid)
-                    elem = model->normalize(elem);
+                    elem = mcmc_model_ptr_->normalize_state(elem);
             }
 
             typedef T SiteType;
+
         protected:
-            const LatticeParameters<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> &lp;
+            std::unique_ptr<Sampler> sampler_ptr_;
+            std::unique_ptr<Model> mcmc_model_ptr_;
+            std::unique_ptr<Method> mcmc_method_ptr_;
+            std::unique_ptr<UpdateDynamics> lattice_update_ptr_;
 
-            std::vector<T> lattice;
-            std::vector<std::vector<T *> > neighbours;
+            std::string lattice_action_type_;
 
-            std::unique_ptr<typename ModelParameters::Model> model;
-            std::unique_ptr<typename UpdateFormalismParameters::MCMCUpdate> update_formalism;
-            std::unique_ptr<typename LatticeUpdateFormalismParameters::UpdateDynamics> lattice_update;
+            uint n_sites_; // Total number of sites
+            uint elem_per_site_; // Number of elements per site (is equal to dimension), but only for the link mcmc_model
+            std::vector<int> dimensions_; // Different dimensions
+            std::vector<int> dim_mul_; // Accumulated different dimensions (by product)
+            int dimension_; // Number of dimensions
+            
+            std::vector<T> lattice_;
+            std::vector<std::vector<T*> > neighbours_;
 
             void initialize_lattice();
 
@@ -279,71 +307,62 @@ namespace lm_impl {
 
             void set_plaquette_neighbours();
 
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<LatticeSystem>>>
-            generate_lattice_system_measures(const json &measure_names);
+            std::vector<std::unique_ptr<mcmc::measures::Measure<LatticeSystem>>>
+            generate_lattice_system_measures(const std::vector<std::string> &measure_names);
         };
 
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        void
-        LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::initialize_lattice() {
-            lattice = std::vector<T>(get_size(), T(0));
-            for (auto &site : lattice)
-                site = update_formalism->template random_state<T>();
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        void LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>::initialize_lattice() {
+            lattice_ = std::vector<T>(get_size(), T(0));
         }
 
 
         //site, moving dimension, direction, index
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        int
-        LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::neigh_dir(int n,
-                                                                                                                  int d,
-                                                                                                                  bool dir,
-                                                                                                                  int mu) const {
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        int LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>::neigh_dir(int n, int d, bool dir, int mu) const {
             if (dir)
-                return (n - n % (lp.dim_mul[d] * lp.dimensions[d]) +
-                        (n + lp.dim_mul[d]) % (lp.dim_mul[d] * lp.dimensions[d])) * lp.elem_per_site + mu;
+                return (n - n % (dim_mul_[d] * dimensions_[d]) +
+                        (n + dim_mul_[d]) % (dim_mul_[d] * dimensions_[d])) * elem_per_site_ + mu;
             else
-                return (n - n % (lp.dim_mul[d] * lp.dimensions[d]) +
-                        (n - lp.dim_mul[d] + lp.dim_mul[d] * lp.dimensions[d]) % (lp.dim_mul[d] * lp.dimensions[d])) *
-                       lp.elem_per_site + mu;
+                return (n - n % (dim_mul_[d] * dimensions_[d]) +
+                        (n - dim_mul_[d] + dim_mul_[d] * dimensions_[d]) % (dim_mul_[d] * dimensions_[d])) *
+                       elem_per_site_ + mu;
         }
 
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        void
-        LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::set_nearest_neighbours() {
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        void LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>::set_nearest_neighbours() {
             // int offset;
             for (uint i = 0; i < get_size(); i++) {
                 // offset = 1;
-                std::vector<T *> nn_of_site;
+                std::vector<T*> nn_of_site;
                 // std::cout << "i: " << i << std::endl;
-                for (uint d = 0; d < lp.dimensions.size(); d++) {
-                    //std::cout << i-i%(offset*lp.dimensions[d])+(i+offset)%(offset*lp.dimensions[d]) << " - " << i-i%(offset*lp.dimensions[d])+(i-offset+offset*lp.dimensions[d])%(offset*lp.dimensions[d]) << std::endl;
+                for (uint d = 0; d < dimensions_.size(); d++) {
+                    //std::cout << i-i%(offset*dimensions[d])+(i+offset)%(offset*dimensions[d]) << " - " << i-i%(offset*dimensions[d])+(i-offset+offset*dimensions[d])%(offset*dimensions[d]) << std::endl;
                     // x + nu
-                    nn_of_site.push_back(&lattice[neigh_dir(i, d, true,
-                                                            0)]); // i-i%(offset*lp.dimensions[d])+(i+offset)%(offset*lp.dimensions[d])]);
-                    // nn_of_site.push_back(&lattice[i-i%(offset*lp.dimensions[d])+(i+offset)%(offset*lp.dimensions[d])]);
+                    nn_of_site.push_back(&lattice_[neigh_dir(i, d, true,
+                                                            0)]); // i-i%(offset*dimensions[d])+(i+offset)%(offset*dimensions[d])]);
+                    // nn_of_site.push_back(&lattice_[i-i%(offset*dimensions[d])+(i+offset)%(offset*dimensions[d])]);
                     // x - nu
-                    nn_of_site.push_back(&lattice[neigh_dir(i, d, false, 0)]);
-                    // nn_of_site.push_back(&lattice[i-i%(offset*lp.dimensions[d])+(i-offset+offset*lp.dimensions[d])%(offset*lp.dimensions[d])]);
-                    // offset = offset*lp.dimensions[d];
+                    nn_of_site.push_back(&lattice_[neigh_dir(i, d, false, 0)]);
+                    // nn_of_site.push_back(&lattice_[i-i%(offset*dimensions[d])+(i-offset+offset*dimensions[d])%(offset*dimensions[d])]);
+                    // offset = offset*dimensions[d];
                 }
-                neighbours.push_back(nn_of_site);
+                neighbours_.push_back(nn_of_site);
             }
         }
 
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        void
-        LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::set_plaquette_neighbours() {
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        void LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>::set_plaquette_neighbours() {
             // Loop over all sites
-            for (uint n = 0; n < get_size() / lp.elem_per_site; n++) {
+            for (uint n = 0; n < get_size() / elem_per_site_; n++) {
                 // Loop over all links for a given site
-                for (auto mu = 0; mu < lp.dimension; mu++) {
-                    std::vector<T *> nn_of_site;
+                for (auto mu = 0; mu < dimension_; mu++) {
+                    std::vector<T*> nn_of_site;
                     // Loop over possible plaquettes (left and right to the respective dimension)
-                    for (auto nu = 0; nu < lp.dimension; nu++) {
+                    for (auto nu = 0; nu < dimension_; nu++) {
                         if (nu != mu) {
                             /*lat.cumneigh_[lat.neigh_dir(n,mu,true,nu)]++;
                             lat.cumneigh_[lat.neigh_dir(n,nu,true,mu)]++;
@@ -352,24 +371,24 @@ namespace lm_impl {
                             lat.cumneigh_[lat.neigh_dir(n,nu,true,mu)]++;
                             lat.cumneigh_[lat.neigh_dir(n,nu,false,nu)]++;*/
 
-                            nn_of_site.push_back(&lattice[neigh_dir(n, mu, true, nu)]);
-                            nn_of_site.push_back(&lattice[neigh_dir(n, nu, true, mu)]);
-                            nn_of_site.push_back(&lattice[n * lp.elem_per_site + nu]);
+                            nn_of_site.push_back(&lattice_[neigh_dir(n, mu, true, nu)]);
+                            nn_of_site.push_back(&lattice_[neigh_dir(n, nu, true, mu)]);
+                            nn_of_site.push_back(&lattice_[n * elem_per_site_ + nu]);
                             nn_of_site.push_back(
-                                    &lattice[neigh_dir(neigh_dir(n, mu, true, 0) / lp.elem_per_site, nu, false, nu)]);
-                            nn_of_site.push_back(&lattice[neigh_dir(n, nu, false, mu)]);
-                            nn_of_site.push_back(&lattice[neigh_dir(n, nu, false, nu)]);
+                                    &lattice_[neigh_dir(neigh_dir(n, mu, true, 0) / elem_per_site_, nu, false, nu)]);
+                            nn_of_site.push_back(&lattice_[neigh_dir(n, nu, false, mu)]);
+                            nn_of_site.push_back(&lattice_[neigh_dir(n, nu, false, nu)]);
                         }
                     }
-                    neighbours.push_back(nn_of_site);
+                    neighbours_.push_back(nn_of_site);
                 }
             }
         }
 
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
         std::ostream &operator<<(std::ostream &os,
-                                 const LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> &lattice) {
+                                 const LatticeSystem<T, Model, Method, UpdateDynamics, Sampler> &lattice) {
             for (uint i = 0; i < lattice.size(); i++) {
                 std::cout << lattice(i) << " ";
                 //if((i+1)%30 == 0) std::cout << std::endl;
@@ -378,17 +397,17 @@ namespace lm_impl {
             return os;
         }
 
-        template<typename T, typename ModelParameters, typename UpdateFormalismParameters, typename LatticeUpdateFormalismParameters>
-        std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>>>>
-        LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters>::generate_lattice_system_measures(
-                const json &measure_names) {
-            typedef LatticeSystem<T, ModelParameters, UpdateFormalismParameters, LatticeUpdateFormalismParameters> LatSys;
-            std::vector<std::unique_ptr<mcmc::common_measures::MeasurePolicy<LatSys>>> lattice_measures{};
+        template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
+        std::vector<std::unique_ptr<mcmc::measures::Measure<LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>>>>
+        LatticeSystem<T, Model, Method, UpdateDynamics, Sampler>::generate_lattice_system_measures(
+                const std::vector<std::string> &measure_names) {
+            typedef LatticeSystem<T, Model, Method, UpdateDynamics, Sampler> LatSys;
+            std::vector<std::unique_ptr<mcmc::measures::Measure<LatSys>>> lattice_measures{};
             for (auto &measure_name :  measure_names)
                 if (measure_name == "Energy")
-                    lattice_measures.push_back(std::make_unique<util::lattice_system_model_measures::MeasureEnergyPolicy<LatSys>>());
+                    lattice_measures.push_back(std::make_unique<util::system_measures::MeasureEnergyPolicy<LatSys>>());
                 else if (measure_name == "Drift")
-                    lattice_measures.push_back(std::make_unique<util::lattice_system_model_measures::MeasureDriftPolicy<LatSys>>());
+                    lattice_measures.push_back(std::make_unique<util::system_measures::MeasureDriftPolicy<LatSys>>());
             return lattice_measures;
         }
 

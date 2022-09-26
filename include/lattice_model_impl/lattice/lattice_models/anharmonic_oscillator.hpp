@@ -5,7 +5,7 @@
 #ifndef LATTICEMODELIMPLEMENTATIONS_ANHARMONIC_OSCILLATOR_HPP
 #define LATTICEMODELIMPLEMENTATIONS_ANHARMONIC_OSCILLATOR_HPP
 
-#include "../lattice_model.hpp"
+#include "../mcmc_model_base.hpp"
 #include "mcmc_simulation/util/random.hpp"
 #include "param_helper/json.hpp"
 
@@ -15,9 +15,9 @@ namespace lm_impl {
         class AnharmonicOscillator;
 
 
-        class AnharmonicOscillatorParameters : public LatticeModelParameters {
+        class AnharmonicOscillatorParameters : public lm_impl::model::MCMCModelBaseParameters {
         public:
-            explicit AnharmonicOscillatorParameters(const json params_) : LatticeModelParameters(params_),
+            explicit AnharmonicOscillatorParameters(const json params_) : MCMCModelBaseParameters(params_),
                                                                           dt(get_entry<double>("dt")),
                                                                           m(get_entry<double>("m")),
                                                                           omega_sq(get_entry<double>("omega_sq")),
@@ -51,24 +51,24 @@ namespace lm_impl {
         };
 
 
-        class AnharmonicOscillator : public LatticeModel<AnharmonicOscillator> {
+        class AnharmonicOscillator : public lm_impl::model::MCMCModelBase<AnharmonicOscillator> {
         public:
             explicit AnharmonicOscillator(const AnharmonicOscillatorParameters &mp_) :
                     mp(mp_) {}
 
             template<typename T>
-            T get_drift_term(const T site, const std::vector<T *> neighbours) {
+            T get_drift_term(const T site, const std::vector<T*> neighbours) {
                 return mp.m * (-1.0 * (*neighbours[0] - site) + (site - *neighbours[1])) / mp.dt +
                        mp.dt * mp.omega_sq * site + mp.lambda / 6.0 * mp.dt * std::pow(site, 3.0);
             }
 
             template<typename T>
-            T get_second_order_drift_term(const T site, const std::vector<T *> neighbours) {
+            T get_second_order_drift_term(const T site, const std::vector<T*> neighbours) {
                 return mp.m / mp.dt + mp.dt * mp.omega_sq + mp.lambda / 2.0 * mp.dt * std::pow(site, 2.0);
             }
 
             template<typename T>
-            T get_potential(const T site, const std::vector<T *> neighbours) {
+            T get_potential(const T site, const std::vector<T*> neighbours) {
                 // neighbour[0] corresponds to the right neighbour, neighbour[1] to the left one
                 return 0.5 * mp.m * (std::pow(*neighbours[0] - site, 2.0) + std::pow(site - *neighbours[1], 2.0)) /
                        mp.dt +

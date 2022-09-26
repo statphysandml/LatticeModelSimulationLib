@@ -11,7 +11,7 @@
 #include "execution/executer.hpp"
 
 #include "lattice_model_impl/update_dynamics/update_dynamics_header.hpp"
-#include "lattice_model_impl/mcmc_update/mcmc_update_header.hpp"
+#include "lattice_model_impl/mcmc_method/mcmc_method_header.hpp"
 
 #include "lattice_model_impl/site/site_header.hpp"
 #include "lattice_model_impl/lattice/lattice_header.hpp"
@@ -22,9 +22,9 @@ namespace from_file_simulation {
     template<typename BasicType, typename Sampler, typename ModelParameters>
     struct MetropolisDynamics
     {
-        typedef lm_impl::mcmc_update::MetropolisUpdateParameters<ModelParameters, Sampler> MCMCUpdateParams;
+        typedef lm_impl::mcmc_method::MetropolisUpdateParameters<ModelParameters, Sampler> MCMCMethodParams;
         typedef lm_impl::update_dynamics::SequentialUpdateParameters UpdateDynamicsParams;
-        typedef lm_impl::lattice_system::LatticeParameters< BasicType, ModelParameters, MCMCUpdateParams, UpdateDynamicsParams> SystemBaseParams;
+        typedef lm_impl::lattice_system::LatticeParameters< BasicType, ModelParameters, MCMCMethodParams, UpdateDynamicsParams> SystemBaseParams;
 
     };
 

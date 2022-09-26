@@ -172,6 +172,8 @@ cython_debug/
 
 # Customized
 
+install/
+
 *.aux
 *.log
 *.out

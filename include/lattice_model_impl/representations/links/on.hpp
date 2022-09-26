@@ -20,7 +20,7 @@ namespace lm_impl {
         public:
             explicit ON(const std::vector<T> x) {
                 if (x.size() != N) {
-                    std::cout << "Invalid size of ON" << std::endl;
+                    std::cerr << "Invalid size of ON" << std::endl;
                     std::exit(EXIT_FAILURE);
                 }
                 x_ = x;

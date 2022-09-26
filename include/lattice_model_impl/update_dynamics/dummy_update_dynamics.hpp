@@ -13,30 +13,23 @@
 namespace lm_impl {
     namespace update_dynamics {
 
-        struct DummyUpdateDynamics;
+        struct DummyUpdateDynamics : public UpdateDynamicsBase<DummyUpdateDynamics>
+        {
+            explicit DummyUpdateDynamics(const json params):
+                UpdateDynamicsBase(params) {}
 
-        struct DummyUpdateDynamicsParameters : UpdateDynamicsBaseParameters {
-            explicit DummyUpdateDynamicsParameters(const json params_) : UpdateDynamicsBaseParameters(params_) {}
+            explicit DummyUpdateDynamics():
+                DummyUpdateDynamics(json{}) {}
 
-            explicit DummyUpdateDynamicsParameters() : DummyUpdateDynamicsParameters(json{}) {}
-
-            static std::string name() {
+            /* static std::string name() {
                 return "DummyUpdateDynamics";
-            }
-
-            typedef DummyUpdateDynamics UpdateDynamics;
-        };
-
-        struct DummyUpdateDynamics : public UpdateDynamicsBase<DummyUpdateDynamics> {
-            explicit DummyUpdateDynamics(const DummyUpdateDynamicsParameters &lp_) : lp(lp_) {}
+            } */
 
             template<typename Site>
             void initialize_update(const Site &site) {}
 
             template<typename Site>
             void update(Site &site, uint measure_interval = 1) {}
-
-            const DummyUpdateDynamicsParameters &lp;
         };
 
     }

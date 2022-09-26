@@ -7,90 +7,66 @@
 
 
 #include "mcmc_simulation/util/random.hpp"
-#include "../lattice_model.hpp"
+#include "../mcmc_model_base.hpp"
 
-// #include "../su2.hpp"
 
 namespace lm_impl {
     namespace lattice_system {
-
-        class ComplexONModel;
-
-        class ComplexONModelParameters : public LatticeModelParameters {
+        class ComplexONModel : public lm_impl::model::MCMCModelBase<ComplexONModel> {
         public:
-            explicit ComplexONModelParameters(const json params_) :
-                LatticeModelParameters(params_),
-                beta(get_entry<double>("beta")),
-                kappa(std::complex<double> {get_entry<double>("kappa_real", 0.0),
-                        get_entry<double>("kappa_imag", 0.0)}),
-                lambda(std::complex<double> {get_entry<double>("lambda_real", 0.0),
-                        get_entry<double>("lambda_imag", 0.0)})
+            explicit ComplexONModel(const json params) :
+                MCMCModelBase(params),
+                kappa_(std::complex<double> {get_entry<double>("kappa_real", 1.0),
+                                             get_entry<double>("kappa_imag", 0.0)}),
+                lambda_(std::complex<double> {get_entry<double>("lambda_real", 1.0),
+                                              get_entry<double>("lambda_imag", 0.0)})
             {}
 
-            explicit ComplexONModelParameters(double beta_, double kappa_real_, double kappa_imag_,
-                                              double lambda_real_, double lambda_imag_) : ComplexONModelParameters(json{
-                    {"beta", beta_},
-                    {"kappa_real", kappa_real_},
-                    {"kappa_imag", kappa_imag_},
-                    {"lambda_real", lambda_real_},
-                    {"lambda_imag", lambda_imag_}
-            }) {}
-
-            const static std::string name() {
-                return "ComplexONModel";
-            }
-
-            typedef ComplexONModel Model;
-
-        private:
-            friend class ComplexONModel;
-
-            const double beta;
-            const std::complex<double> kappa;
-            const std::complex<double> lambda;
-        };
-
-        class ComplexONModel : public LatticeModel<ComplexONModel> {
-        public:
-            explicit ComplexONModel(const ComplexONModelParameters &mp_) : mp(mp_) {}
+            explicit ComplexONModel(double kappa_real=1.0, double kappa_imag=0.0,
+                double lambda_real=1.0, double lambda_imag=0.0) : ComplexONModel(json{
+                    {"kappa_real", kappa_real},
+                    {"kappa_imag", kappa_imag},
+                    {"lambda_real", lambda_real},
+                    {"lambda_imag", lambda_imag}
+            })
+            {}
 
             // According to equation (3.16) from Smit QFT Lattice
             template<typename T, typename T2=std::complex<double_t>>
-            T2 get_potential(const T site, const std::vector<T*> neighbours)
-            {
+            T2 get_potential(const T site, const std::vector<T*> neighbours) const {
                 std::complex<double> potential = 0;
                 for(size_t i = 0; i < neighbours.size(); i++) {
                     potential += site * (*neighbours[i]);
                 }
                 std::complex<double> site_sq = site * site;
-                potential = 2.0 * mp.kappa * potential - site_sq - mp.lambda * pow(site_sq - 1.0, 2.0);
-                return -1.0 * mp.beta * potential;
+                potential = 2.0 * kappa_ * potential - site_sq - lambda_ * pow(site_sq - 1.0, 2.0);
+                return -1.0 * potential;
             }
 
             template<typename T, typename T2=std::complex<double_t>>
-            T2 get_energy_per_lattice_elem(const T site, const std::vector<T*> neighbours)
-            {
+            T2 get_energy_per_lattice_elem(const T site, const std::vector<T*> neighbours) const {
                 std::complex<double> potential = 0;
                 for(size_t i = 0; i < neighbours.size(); i += 2) {
                     potential += site * (*neighbours[i]);
                 }
                 std::complex<double> site_sq = site * site;
-                potential = 2.0 * mp.kappa * potential - site_sq - mp.lambda * pow(site_sq - 1.0, 2.0);
-                return -1.0 * mp.beta * potential;
+                potential = 2.0 * kappa_ * potential - site_sq - lambda_ * pow(site_sq - 1.0, 2.0);
+                return -1.0 * potential;
             }
 
             template<typename T>
-            T get_drift_term(const T site, const std::vector<T *> neighbours) {
+            T get_drift_term(const T site, const std::vector<T*> neighbours) const {
                 T drift_term(0);
                 for(size_t i = 0; i < neighbours.size(); i++) {
                     drift_term += (*neighbours[i]);
                 }
-                drift_term = 2.0 * mp.kappa * drift_term + (-2.0) * site + (-4.0) * site * mp.lambda * (site * site - 1.0);
-                return -1.0 * mp.beta * drift_term;
+                drift_term = 2.0 * kappa_ * drift_term + (-2.0) * site + (-4.0) * site * lambda_ * (site * site - 1.0);
+                return -1.0 * drift_term;
             }
 
         private:
-            const ComplexONModelParameters &mp;
+            std::complex<double> kappa_;
+            std::complex<double> lambda_;
         };
     }
 }
