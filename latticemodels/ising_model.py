@@ -21,7 +21,7 @@ class IsingModel:
         self.model = IsingModelParameters(beta=self.beta, J=self.J, h=self.h)
 
         from latticemodelimpl import IsingModelMetropolisParameters
-        self.mcmc_update = IsingModelMetropolisParameters()
+        self.mcmc_method = IsingModelMetropolisParameters()
 
         # Possibility to have this as a factory method!
         if self.lattice_update_formalism == "Sequential":
@@ -33,7 +33,7 @@ class IsingModel:
         from latticemodelimpl import IsingModelMetropolisLatticeParameters as LatticeParameters
         self.parameters = LatticeParameters.generate_parameters(
             self.model,
-            self.mcmc_update,
+            self.mcmc_method,
             lattice_update_formalism_,
             self.dimensions,
             "nearest_neighbour",
