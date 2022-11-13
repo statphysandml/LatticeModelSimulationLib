@@ -1,14 +1,10 @@
-//
-// Created by lukas on 31.08.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_XY_MODEL_HPP
 #define LATTICEMODELIMPLEMENTATIONS_XY_MODEL_HPP
 
 
-#include "../mcmc_model_base.hpp"
-#include "mcmc_simulation/util/random.hpp"
-#include "param_helper/json.hpp"
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <nlohmann/json.hpp>
 
 
 namespace lm_impl {
@@ -51,6 +47,10 @@ namespace lm_impl {
                     {"J",    J},
                     {"h",    h}
             }) {}
+
+            static const std::string type() {
+                return "XYModel";
+            }
 
             template<typename T>
             T normalize(T state) {
@@ -97,7 +97,7 @@ namespace lm_impl {
 
             template<typename SB>
             std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>
-            generate_model_measures(const SB &system) {
+            generate_mcmc_model_measures(const SB &system) {
                 auto measure_names = system.measure_names();
 
                 std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>> measurements{};

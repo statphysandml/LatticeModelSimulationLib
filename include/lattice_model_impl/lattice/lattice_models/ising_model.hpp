@@ -1,11 +1,12 @@
 #ifndef MAIN_ISING_MODEL_HPP
 #define MAIN_ISING_MODEL_HPP
 
-#include <mcmc_simulation/util/random.hpp>
-#include <param_helper/json.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <nlohmann/json.hpp>
 
-#include "../mcmc_model_base.hpp"
-#include "../../sampler/sampler_base.hpp"
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
+#include <lattice_model_impl/sampler/sampler_base.hpp>
+
 
 namespace lm_impl {
     namespace lattice_system {
@@ -25,6 +26,10 @@ namespace lm_impl {
                     {"h", h}
             })
             {}
+
+            static const std::string type() {
+                return "IsingModel";
+            }
 
             template<typename T, typename T2=double_t>
             T2 get_potential(const T site, const std::vector<T*> neighbours) const
@@ -64,6 +69,10 @@ namespace lm_impl {
             explicit IsingModelSampler() : IsingModelSampler(json{})
             {}
 
+            static const std::string type() {
+                return "IsingModelSampler";
+            }
+
             template<typename T>
             T cold_sample() {
                 return 1;
@@ -72,7 +81,7 @@ namespace lm_impl {
             template<typename T>
             T random_sample()
             {
-                return 2 * uniint_(mcmc::util::g_gen) - 1;
+                return 2 * uniint_(mcmc::util::random::g_gen) - 1;
             }
 
             template<typename T>

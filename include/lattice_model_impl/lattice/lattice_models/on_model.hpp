@@ -1,13 +1,9 @@
-//
-// Created by lukas on 12.12.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_ON_MODEL_HPP
 #define LATTICEMODELIMPLEMENTATIONS_ON_MODEL_HPP
 
 
-#include "mcmc_simulation/util/random.hpp"
-#include "../mcmc_model_base.hpp"
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
 
 
 namespace lm_impl {
@@ -26,6 +22,10 @@ namespace lm_impl {
                     {"lambda", lambda_}
                 })
             {}
+
+            static const std::string type() {
+                return "ONModel";
+            }
 
             double set_kappa()
             {

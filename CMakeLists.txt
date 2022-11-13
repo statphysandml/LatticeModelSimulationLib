@@ -54,9 +54,13 @@ endif()
 # Compilation options
 
 # compile external submodules
-add_subdirectory(ext/MCMCSimulationLib)
 include_directories(ext/MCMCSimulationLib/ext/ParamHelper/include/)
 include_directories(ext/MCMCSimulationLib/include)
+add_subdirectory(ext/MCMCSimulationLib)
+
+# add eigen
+include_directories(ext/eigen/Eigen)
+add_subdirectory(ext/eigen)
 
 # compile the library
 add_subdirectory(src)
@@ -112,14 +116,3 @@ install(
 # This prints a summary of found dependencies
 include(FeatureSummary)
 feature_summary(WHAT ALL)
-
-
-# Copied from MCMCSimulationLib
-
-# find_package(Boost 1.67 REQUIRED COMPONENTS filesystem)
-# if(Boost_FOUND)
-#     include_directories(${Boost_INCLUDE_DIRS})
-#     message("Boost = ${Boost_INCLUDE_DIRS}")
-# endif()
-
-# target_link_libraries(ScalarTheoryGPU mcmcsimulationlib::mcmcsimulationlib paramhelper::paramhelper Boost::filesystem ${target_link_libraries_python_appendix})

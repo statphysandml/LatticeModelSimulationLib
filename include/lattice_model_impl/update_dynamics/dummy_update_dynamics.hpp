@@ -1,13 +1,8 @@
-//
-// Created by lukas on 11.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_DUMMY_UPDATE_DYNAMICS_HPP
 #define LATTICEMODELIMPLEMENTATIONS_DUMMY_UPDATE_DYNAMICS_HPP
 
 
-
-#include "update_dynamics_base.hpp"
+#include <lattice_model_impl/update_dynamics/update_dynamics_base.hpp>
 
 
 namespace lm_impl {

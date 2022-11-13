@@ -1,7 +1,3 @@
-//
-// Created by lukas on 04.11.19.
-//
-
 #ifndef MAIN_U1_HPP
 #define MAIN_U1_HPP
 
@@ -12,8 +8,9 @@
 #include <random>
 #include <algorithm>
 
-#include "mcmc_simulation/util/complex_type.hpp"
-#include "../link.hpp"
+#include <mcmc/mcmc_simulation/util/complex_type.hpp>
+
+#include <lattice_model_impl/representations/link.hpp>
 
 
 namespace lm_impl {

@@ -2,7 +2,9 @@
 #define MAIN_UNIFORM_SAMPLER_HPP
 
 
-#include <mcmc_simulation/util/random.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
+
+#include <lattice_model_impl/sampler/sampler_base.hpp>
 
 
 namespace lm_impl {
@@ -12,34 +14,46 @@ namespace lm_impl {
          *
          * Sampler function for sampling, evaluating and integrating a uniform distribution.
          */
-        struct UniformSampler
+        struct UniformSampler : public lm_impl::sampler::SamplerBase<UniformSampler>
         {
-            UniformSampler(const double eps_=0.1) : eps(eps_) {
-                uniform = std::uniform_real_distribution<double>(-1.0, 1.0);
+            explicit UniformSampler(json params):
+                lm_impl::sampler::SamplerBase<UniformSampler>(params),
+                eps_(this->template get_entry<double>("eps", 0.1))
+            {
+                uniform_ = std::uniform_real_distribution<double>(-1.0, 1.0);
+            }
+
+
+            UniformSampler(const double eps=0.1):
+                UniformSampler(json{{"eps", eps}})
+            {}
+            
+            static const std::string type() {
+                return "UniformSampler";
             }
 
             template<typename T>
-            T random_state() {
-                return eps * uniform(mcmc::util::g_gen);
+            T random_sample() {
+                return eps_ * uniform_(mcmc::util::random::g_gen);
             }
 
             template<typename T>
-            T cold_state() {
+            T cold_sample() {
                 return T(0);
             }
 
             template<typename T>
-            T propose_state(T site) {
-                return site + eps * uniform(mcmc::util::g_gen);
+            T propose_sample(T site) {
+                return site + eps_ * uniform_(mcmc::util::random::g_gen);
             }
 
             double get_eps() const {
-                return eps;
+                return eps_;
             }
 
             template<typename T>
             std::pair<double, double> get_integration_bounds(const T &site) const {
-                return std::pair<double, double>(site.real() - eps, site.real() + eps);
+                return std::pair<double, double>(site.real() - eps_, site.real() + eps_);
             }
 
             struct transformer_func {
@@ -52,14 +66,10 @@ namespace lm_impl {
                 return 1.0;
             }
 
-            const static std::string name() {
-                return "UniformSampler";
-            }
+            double eps_;
+            std::uniform_real_distribution<double> uniform_;
 
-            const double eps;
-            std::uniform_real_distribution<double> uniform;
-
-            transformer_func transformer;
+            transformer_func transformer_;
         };
     }
 }

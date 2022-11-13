@@ -1,4 +1,5 @@
 add_library(latticemodelsimulationlib STATIC
+  representations/links/onelink_su3.cpp
   representations/links/u1.cpp
   sampler/gaussian_sampler.cpp
   sampler/hat_function_sampler.cpp
@@ -9,6 +10,8 @@ if (RUN_WITH_PYTHON_BACKEND)
   target_compile_definitions(latticemodelsimulationlib PUBLIC PYTHON_BACKEND)
   target_link_libraries(latticemodelsimulationlib PRIVATE ${target_link_libraries_python_appendix})
 endif()
+
+target_link_libraries(latticemodelsimulationlib PUBLIC mcmcsimulationlib::mcmcsimulationlib paramhelper::paramhelper)
 
 target_include_directories(latticemodelsimulationlib PUBLIC
   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>

@@ -1,13 +1,9 @@
-//
-// Created by lukas on 12.01.21.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_COMPLEX_ON_MODEL_HPP
 #define LATTICEMODELIMPLEMENTATIONS_COMPLEX_ON_MODEL_HPP
 
 
-#include "mcmc_simulation/util/random.hpp"
-#include "../mcmc_model_base.hpp"
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
 
 
 namespace lm_impl {
@@ -30,6 +26,10 @@ namespace lm_impl {
                     {"lambda_imag", lambda_imag}
             })
             {}
+
+            static const std::string type() {
+                return "ComplexONModel";
+            }
 
             // According to equation (3.16) from Smit QFT Lattice
             template<typename T, typename T2=std::complex<double_t>>

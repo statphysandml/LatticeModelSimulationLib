@@ -1,14 +1,11 @@
-//
-// Created by lukas on 11.09.20.
-//
-
 #ifndef COMPLEXMONTECARLO_COMPLEX_MONTE_CARLO_MEASURES_HPP
 #define COMPLEXMONTECARLO_COMPLEX_MONTE_CARLO_MEASURES_HPP
 
-#include "mcmc_simulation/measure_policy.hpp"
-#include "../../site/site.hpp"
-#include "../../mcmc_method/dummy_mcmc_method.hpp"
-#include "../../update_dynamics/dummy_update_dynamics.hpp"
+#include <mcmc/mcmc_simulation/measure_policy.hpp>
+#include <lattice_model_impl/site/site.hpp>
+#include <lattice_model_impl/mcmc_method/dummy_mcmc_method.hpp>
+#include <lattice_model_impl/update_dynamics/dummy_update_dynamics.hpp>
+
 
 namespace lm_impl {
     namespace util {

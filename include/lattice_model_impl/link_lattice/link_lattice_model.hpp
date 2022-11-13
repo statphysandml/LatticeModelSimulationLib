@@ -1,13 +1,9 @@
-//
-// Created by lukas on 05.11.19.
-//
-
 #ifndef MAIN_LINK_LATTICE_MODEL_HPP
 #define MAIN_LINK_LATTICE_MODEL_HPP
 
-#include "../lattice/mcmc_model_base.hpp"
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
+#include <lattice_model_impl/util/measures/link_lattice_model_measures.hpp>
 
-#include "../util/measures/link_lattice_model_measures.hpp"
 
 namespace lm_impl {
     namespace link_lattice_system {
@@ -20,7 +16,7 @@ namespace lm_impl {
 
             template<typename SB>
             std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>
-            generate_model_measures(const SB &system) {
+            generate_mcmc_model_measures(const SB &system) {
                 auto measure_names = system.measure_names();
                 std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>> link_lattice_measures{};
                 for (auto &measure_name :  measure_names)

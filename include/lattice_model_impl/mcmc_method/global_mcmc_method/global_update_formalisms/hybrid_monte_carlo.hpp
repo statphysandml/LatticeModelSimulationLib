@@ -1,15 +1,11 @@
-//
-// Created by lukas on 06.08.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_HYBRID_MONTE_CARLO_HPP
 #define LATTICEMODELIMPLEMENTATIONS_HYBRID_MONTE_CARLO_HPP
 
 
-#include "boost/numeric/odeint/stepper/symplectic_rkn_sb3a_mclachlan.hpp"
-#include "boost/numeric/odeint/integrate/integrate_n_steps.hpp"
+#include <boost/numeric/odeint/stepper/symplectic_rkn_sb3a_mclachlan.hpp>
+#include <boost/numeric/odeint/integrate/integrate_n_steps.hpp>
 
-#include "../../mcmc_method_base.hpp"
+#include <lattice_model_impl/mcmc_method/mcmc_method_base.hpp>
 
 
 namespace lm_impl {
@@ -35,6 +31,10 @@ namespace lm_impl {
                     {"m", m}})
             {}
 
+            static const std::string type() {
+                return "HybridMonteCarloUpdate";
+            }
+
             template<typename System>
             void initialize(System &system) {
                 model_ptr_ = system.get_mcmc_model().get();
@@ -48,7 +48,7 @@ namespace lm_impl {
                 auto current_system_grid(system.get_system_representation());
 
                 // Sample momenta
-                std::generate(momenta_.begin(), momenta_.end(), [this]() { return normal_(mcmc::util::g_gen); });
+                std::generate(momenta_.begin(), momenta_.end(), [this]() { return normal_(mcmc::util::random::g_gen); });
                 std::copy(momenta_.begin(), momenta_.end(), backup_momenta_.begin());
 
                 HamiltonianSystemMomentum hamiltonian_system_momentum(model_ptr_, system.get_neighbours());
@@ -68,7 +68,7 @@ namespace lm_impl {
                 auto proposal_kinetic_term = std::inner_product(momenta_.begin(), momenta_.end(), momenta_.begin(), 0.0);
 
                 // Accept/Reject step
-                if (rand_(mcmc::util::g_gen) >= std::min(1.0, std::exp(
+                if (rand_(mcmc::util::random::g_gen) >= std::min(1.0, std::exp(
                         -1.0 * (proposal_energy - current_energy) - 0.5 * (proposal_kinetic_term - kinetic_term) / m_))) {
                     auto &system_grid = system.get_system_representation();
                     system_grid = current_system_grid;

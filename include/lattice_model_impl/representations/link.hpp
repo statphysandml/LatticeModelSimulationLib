@@ -1,7 +1,3 @@
-//
-// Created by lukas on 04.11.19.
-//
-
 #ifndef MAIN_LINK_HPP
 #define MAIN_LINK_HPP
 
@@ -13,7 +9,7 @@
 #include <random>
 #include <algorithm>
 
-#include "mcmc_simulation/util/random.hpp"
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
 
 namespace lm_impl {

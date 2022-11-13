@@ -2,7 +2,7 @@
 #define LATTICEMODELIMPLEMENTATIONS_PARALLEL_UPDATE_WIH_ADAPATIVE_STEPSIZE_HPP
 
 
-#include "../../update_dynamics_base.hpp"
+#include <lattice_model_impl/update_dynamics/update_dynamics_base.hpp>
 
 
 namespace lm_impl {
@@ -19,6 +19,10 @@ namespace lm_impl {
                     {"thermalization_langevin_time_interval", thermalization_langevin_time_interval},
                     {"langevin_time_measure_interval", langevin_time_measure_interval}})
             {}
+
+            static const std::string type() {
+                return "ParallelUpdateWithAdaptiveStepsize";
+            }
 
             template<typename System>
             void initialize(System &system) {

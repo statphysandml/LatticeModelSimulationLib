@@ -1,12 +1,8 @@
-//
-// Created by lukas on 11.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_DUMMY_mcmc_method_HPP
 #define LATTICEMODELIMPLEMENTATIONS_DUMMY_mcmc_method_HPP
 
 
-#include "mcmc_method_base.hpp"
+#include <lattice_model_impl/mcmc_method/mcmc_method_base.hpp>
 
 
 namespace lm_impl {

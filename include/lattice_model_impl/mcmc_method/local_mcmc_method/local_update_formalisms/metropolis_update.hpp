@@ -1,12 +1,8 @@
-//
-// Created by lukas on 11.10.19.
-//
-
 #ifndef MAIN_METROPOLIS_UPDATE_HPP
 #define MAIN_METROPOLIS_UPDATE_HPP
 
 
-#include "../../mcmc_method_base.hpp"
+#include <lattice_model_impl/mcmc_method/mcmc_method_base.hpp>
 
 
 namespace lm_impl {
@@ -25,6 +21,10 @@ namespace lm_impl {
                 MetropolisUpdate(json{})
             {}
 
+            static const std::string type() {
+                return "MetropolisUpdate";
+            }
+
             template<typename System>
             void initialize(System &system) {
                 sampler_ptr_ = system.get_sampler().get();
@@ -33,8 +33,8 @@ namespace lm_impl {
 
             template<typename T>
             T operator()(const T site) {
-                T proposed_site = sampler_ptr_->template propose_sample(site);
-                if(rand_(mcmc::util::g_gen) <
+                T proposed_site = sampler_ptr_->template propose_state(site);
+                if(rand_(mcmc::util::random::g_gen) <
                     std::min(1.0, std::exp(-1.0 * (model_ptr_->get_potential(proposed_site) - model_ptr_->get_potential(site)))))
                     return this->model_ptr_->normalize_state(proposed_site);
                 else
@@ -43,8 +43,8 @@ namespace lm_impl {
 
             template<typename T>
             T operator()(const T site, const std::vector<T*> neighbours) {
-                T proposed_site = sampler_ptr_->template propose_sample(site);
-                if(rand_(mcmc::util::g_gen) < std::min(
+                T proposed_site = sampler_ptr_->template propose_state(site);
+                if(rand_(mcmc::util::random::g_gen) < std::min(
                         1.0, std::exp(
                             -1.0 * (model_ptr_->get_potential(proposed_site, neighbours) -
                                     model_ptr_->get_potential(site, neighbours))

@@ -3,11 +3,10 @@
 
 
 #include <param_helper/params.hpp>
-#include <mcmc_simulation/measure_policy.hpp>
-#include <mcmc_simulation/util/random.hpp>
+#include <mcmc/mcmc_simulation/measure_policy.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
-
-#include "../sampler/dummy_sampler.hpp"
+#include <lattice_model_impl/sampler/dummy_sampler.hpp>
 
 
 namespace lm_impl {
@@ -24,7 +23,7 @@ namespace lm_impl {
             {}
 
             void write_to_file(const std::string rel_root_dir) {
-                Parameters::write_to_file(rel_root_dir, "sampler_params");
+                Parameters::write_to_file(rel_root_dir, SamplerBase::name());
             }
 
             static std::string name() {
@@ -45,6 +44,12 @@ namespace lm_impl {
             T cold_state() {
                 return sampler().template cold_sample<T>();
             };
+
+            template<typename T>
+            T propose_state(T site)
+            {
+                return sampler().template propose_sample<T>(site);
+            }
 
             template<typename SB>
             std::vector<std::unique_ptr<mcmc::measures::Measure<SB>>>

@@ -1,13 +1,9 @@
-//
-// Created by lukas on 10.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_COMPLEX_ANHARMONIC_OSCILLATOR_HPP
 #define LATTICEMODELIMPLEMENTATIONS_COMPLEX_ANHARMONIC_OSCILLATOR_HPP
 
 #include "../lattice_model.hpp"
-#include "mcmc_simulation/util/random.hpp"
-#include "param_helper/json.hpp"
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <nlohmann/json.hpp>
 
 namespace lm_impl {
     namespace lattice_system {

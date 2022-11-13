@@ -2,7 +2,7 @@
 #define MAIN_SU2_MODEL_HPP
 
 
-#include "../link_lattice_model.hpp"
+#include <lattice_model_impl/link_lattice/link_lattice_model.hpp>
 
 
 namespace lm_impl {
@@ -18,6 +18,10 @@ namespace lm_impl {
                     {"beta", beta}
             })
             {}
+
+            static const std::string type() {
+                return "SU2Model";
+            }
 
             static uint N() {
                 return 2;

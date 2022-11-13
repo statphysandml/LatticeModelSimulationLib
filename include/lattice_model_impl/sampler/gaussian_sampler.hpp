@@ -2,9 +2,9 @@
 #define MAIN_GAUSSIAN_SAMPLER_HPP
 
 
-#include <mcmc_simulation/util/random.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
-#include "sampler_base.hpp"
+#include <lattice_model_impl/sampler/sampler_base.hpp>
 
 
 namespace lm_impl {
@@ -14,10 +14,10 @@ namespace lm_impl {
          *
          * Sampler function for sampling, evaluating and integrating a Gaussian distribution.
          */
-        struct GaussianSampler : public SamplerBase<GaussianSampler> {
+        struct GaussianSampler : public lm_impl::sampler::SamplerBase<GaussianSampler> {
             
             explicit GaussianSampler(json params):
-                SamplerBase<GaussianSampler>(params),
+                lm_impl::sampler::SamplerBase<GaussianSampler>(params),
                 eps_(this->template get_entry<double>("eps", 0.1))
             {
                 normal_ = std::normal_distribution<double>(0, 1);
@@ -27,9 +27,13 @@ namespace lm_impl {
                 GaussianSampler(json{{"eps", eps}})
             {}
 
+            static const std::string type() {
+                return "GaussianSampler";
+            }
+
             template<typename T>
             T random_sample() {
-                return std::sqrt(2 * eps_) * normal_(mcmc::util::g_gen);
+                return std::sqrt(2 * eps_) * normal_(mcmc::util::random::g_gen);
             }
 
             template<typename T>
@@ -38,8 +42,8 @@ namespace lm_impl {
             }
 
             template<typename T>
-            T proposal_sample(T site) {
-                return site + std::sqrt(2 * eps_) * normal_(mcmc::util::g_gen);
+            T propose_sample(T site) {
+                return site + std::sqrt(2 * eps_) * normal_(mcmc::util::random::g_gen);
             }
 
             double get_eps() const {

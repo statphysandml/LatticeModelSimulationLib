@@ -2,7 +2,7 @@
 #define LATTICEMODELSIMULATIONLIB_LINK_SAMPLER_HPP
 
 
-#include "sampler_base.hpp"
+#include <lattice_model_impl/sampler/sampler_base.hpp>
 
 
 namespace lm_impl {
@@ -17,6 +17,10 @@ namespace lm_impl {
             LinkSampler(const double eps=0.95):
                 LinkSampler(json{{"eps", eps}})
             {}
+
+            static const std::string type() {
+                return "LinkSampler";
+            }
 
             template<typename T>
             T cold_sample() {

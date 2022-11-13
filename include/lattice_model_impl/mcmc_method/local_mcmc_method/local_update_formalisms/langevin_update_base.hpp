@@ -2,7 +2,7 @@
 #define MAIN_LANGEVIN_UPDATE_BASE_UPDATE_HPP
 
 
-#include "../../mcmc_method_base.hpp"
+#include <lattice_model_impl/mcmc_method/mcmc_method_base.hpp>
 
 
 namespace lm_impl {

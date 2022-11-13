@@ -1,13 +1,9 @@
-//
-// Created by lukas on 10.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_MEMORY_SIMPLE_UPDATE_HPP
 #define LATTICEMODELIMPLEMENTATIONS_MEMORY_SIMPLE_UPDATE_HPP
 
 
-#include "../../../update_dynamics/update_dynamics_base.hpp"
-#include "../../../util/measures/complex_monte_carlo_measures.hpp"
+#include <lattice_model_impl/update_dynamics/update_dynamics_base.hpp>
+#include <lattice_model_impl/util/measures/complex_monte_carlo_measures.hpp>
 
 
 namespace lm_impl {

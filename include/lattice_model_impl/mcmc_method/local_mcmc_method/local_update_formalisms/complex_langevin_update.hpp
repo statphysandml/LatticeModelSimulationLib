@@ -2,7 +2,7 @@
 #define MAIN_COMPLEX_LANGEVIN_UPDATE_HPP
 
 
-#include "langevin_update_base.hpp"
+#include <lattice_model_impl/mcmc_method/local_mcmc_method/local_update_formalisms/langevin_update_base.hpp>
 
 
 namespace lm_impl {
@@ -12,10 +12,14 @@ namespace lm_impl {
         public:
             using LangevinUpdateBase<ComplexLangevinUpdate<Model>, Model>::LangevinUpdateBase;
 
+            static const std::string type() {
+                return "ComplexLangevinUpdate";
+            }
+
             template<typename T>
             T update(const T site, const T drift_term, const double &epsilon, const double &sqrt2epsilon) {
                 T new_site = {site.real(), site.imag()};
-                new_site.real(site.real() - epsilon * drift_term.real() + sqrt2epsilon * this->normal_(mcmc::util::g_gen));
+                new_site.real(site.real() - epsilon * drift_term.real() + sqrt2epsilon * this->normal_(mcmc::util::random::g_gen));
                 new_site.imag(site.imag() - epsilon * drift_term.imag());
                 return this->model_ptr_->normalize_state(new_site);
             }

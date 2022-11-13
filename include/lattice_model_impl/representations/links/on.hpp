@@ -1,13 +1,8 @@
-//
-// Created by lukas on 12.12.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_ON_HPP
 #define LATTICEMODELIMPLEMENTATIONS_ON_HPP
 
 
-#include "../link.hpp"
-#include "mcmc_simulation/util/random.hpp"
+#include <lattice_model_impl/representations/link.hpp>
 
 
 namespace lm_impl {

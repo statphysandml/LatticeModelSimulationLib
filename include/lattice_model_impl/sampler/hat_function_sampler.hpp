@@ -2,7 +2,7 @@
 #define MAIN_HAT_FUNCTION_SAMPLER_HPP
 
 
-#include <mcmc_simulation/util/random.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
 
 namespace lm_impl {
@@ -18,9 +18,13 @@ namespace lm_impl {
                 uniform = std::uniform_real_distribution<double>(0, 1);
             }
 
+            static const std::string type() {
+                return "HatFunctionSampler";
+            }
+
             template<typename T>
             T random_state() {
-                auto r = uniform(mcmc::util::g_gen);
+                auto r = uniform(mcmc::util::random::g_gen);
                 if (r < 0.5)
                     return -1.0 * eps * (1.0 - sqrt(2 * r));
                 else

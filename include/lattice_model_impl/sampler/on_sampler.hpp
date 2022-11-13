@@ -2,7 +2,7 @@
 #define LATTICEMODELSIMULATIONLIB_ON_SAMPLER_HPP
 
 
-#include "sampler_base.hpp"
+#include <lattice_model_impl/sampler/sampler_base.hpp>
 
 
 namespace lm_impl {
@@ -16,15 +16,19 @@ namespace lm_impl {
                 normal_ = std::normal_distribution<double>(0, 1);
             }
 
-            ONSampler(const double eps=0.1):
+            explicit ONSampler(const double eps=0.1):
                 ONSampler(json{{"eps", eps}})
             {}            
+
+            static const std::string type() {
+                return "ONSampler";
+            }
 
             template<typename T>
             T random_sample() {
                 T new_site(0);
                 for(uint i = 0; i < new_site.dim(); i++)
-                    new_site(i) += std::sqrt(2 * eps_) * normal_(mcmc::util::g_gen);
+                    new_site(i) += std::sqrt(2 * eps_) * normal_(mcmc::util::random::g_gen);
                 return new_site;
             }
 

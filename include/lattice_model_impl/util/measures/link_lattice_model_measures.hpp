@@ -1,14 +1,10 @@
-//
-// Created by lukas on 12.01.21.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_LINK_LATTICE_MODEL_MEASURES_HPP
 #define LATTICEMODELIMPLEMENTATIONS_LINK_LATTICE_MODEL_MEASURES_HPP
 
-#include "mcmc_simulation/measure_policy.hpp"
-#include "mcmc_simulation/util/random.hpp"
-#include "param_helper/params.hpp"
-#include "param_helper/json.hpp"
+#include <mcmc/mcmc_simulation/measure_policy.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <param_helper/params.hpp>
+#include <nlohmann/json.hpp>
 
 
 namespace lm_impl {

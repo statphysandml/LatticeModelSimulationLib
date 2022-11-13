@@ -1,14 +1,10 @@
-//
-// Created by lukas on 10.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_COMPLEX_XY_MODEL_HPP
 #define LATTICEMODELIMPLEMENTATIONS_COMPLEX_XY_MODEL_HPP
 
 
-#include "../mcmc_model_base.hpp"
-#include "mcmc_simulation/util/random.hpp"
-#include "param_helper/json.hpp"
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
+#include <nlohmann/json.hpp>
 
 
 namespace lm_impl {
@@ -27,6 +23,10 @@ namespace lm_impl {
                     {"beta", beta},
                     {"mu",   mu}
             }) {}
+
+            static const std::string type() {
+                return "ComplexXYModel";
+            }
 
             std::complex<double> normalize(std::complex<double> state) {
                 state.real(normalize(state.real()));

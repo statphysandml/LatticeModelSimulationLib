@@ -1,12 +1,8 @@
-//
-// Created by lukas on 06.08.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_SIMPLE_UDATE_HPP
 #define LATTICEMODELIMPLEMENTATIONS_SIMPLE_UDATE_HPP
 
 
-#include "../../update_dynamics_base.hpp"
+#include <lattice_model_impl/update_dynamics/update_dynamics_base.hpp>
 
 
 namespace lm_impl {
@@ -17,6 +13,10 @@ namespace lm_impl {
             {}
 
             explicit SiteSimpleUpdate() : SiteSimpleUpdate(json{}) {}
+
+            static const std::string type() {
+                return "SiteSimpleUpdate";
+            }
 
             template<typename Site>
             void update(Site &site, uint measure_interval = 1) {

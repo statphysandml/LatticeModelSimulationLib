@@ -1,12 +1,8 @@
-//
-// Created by lukas on 11.10.19.
-//
-
 #ifndef MAIN_COMPLEX_CUBIC_MODEL_HPP
 #define MAIN_COMPLEX_CUBIC_MODEL_HPP
 
-#include "../site_model.hpp"
-#include "mcmc_simulation/util/random.hpp"
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
 
 namespace lm_impl {
@@ -18,6 +14,10 @@ namespace lm_impl {
             {}
 
             explicit ComplexCubicModel() : ComplexCubicModel(json{}) {}
+
+            static const std::string type() {
+                return "ComplexCubicModel";
+            }
 
             static std::complex<double> get_drift_term(const std::complex<double> site) {
                 return {-2.0 * site.real() * site.imag(), -1.0 * (std::pow(site.imag(), 2) - std::pow(site.real(), 2))};

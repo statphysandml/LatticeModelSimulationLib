@@ -2,8 +2,8 @@
 #define LATTICEMODELIMPLEMENTATIONS_COMPLEX_POLYNOMIAL_MODEL_HPP
 
 
-#include "../../lattice/mcmc_model_base.hpp"
-#include "mcmc_simulation/util/random.hpp"
+#include <lattice_model_impl/lattice/mcmc_model_base.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
 
 namespace lm_impl {
@@ -27,6 +27,10 @@ namespace lm_impl {
                     {"h_real", h_real},
                     {"h_imag", h_imag},
             }) {}
+
+            static const std::string type() {
+                return "ComplexPolynomialModel";
+            }
 
             std::complex<double> get_potential(const std::complex<double> site) const {
                 return 0.5 * sigma_ * std::pow(site, 2) + 0.25 * lambda_ * std::pow(site, 4) + h_ * site;

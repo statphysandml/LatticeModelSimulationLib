@@ -1,11 +1,7 @@
-//
-// Created by lukas on 10.09.20.
-//
-
 #ifndef LATTICEMODELIMPLEMENTATIONS_MEMORY_PARALLEL_UPDATE_HPP
 #define LATTICEMODELIMPLEMENTATIONS_MEMORY_PARALLEL_UPDATE_HPP
 
-#include "../../update_dynamics_base.hpp"
+#include <lattice_model_impl/update_dynamics/update_dynamics_base.hpp>
 
 
 namespace lm_impl {

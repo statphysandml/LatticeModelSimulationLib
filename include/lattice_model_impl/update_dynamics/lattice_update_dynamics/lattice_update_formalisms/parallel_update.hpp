@@ -2,7 +2,7 @@
 #define LATTICEMODELIMPLEMENTATIONS_PARALLEL_UPDATE_HPP
 
 
-#include "../../update_dynamics_base.hpp"
+#include <lattice_model_impl/update_dynamics/update_dynamics_base.hpp>
 
 
 namespace lm_impl {
@@ -11,6 +11,10 @@ namespace lm_impl {
             explicit ParallelUpdate(const json params):
                 UpdateDynamicsBase(params)
             {}
+
+            static const std::string type() {
+                return "ParallelUpdate";
+            }
 
             template<typename System>
             void update(System &system, uint measure_interval = 1) {

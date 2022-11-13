@@ -1,11 +1,10 @@
 #ifndef MAIN_SITE_HPP
 #define MAIN_SITE_HPP
 
-#include <mcmc_simulation/header.hpp>
+#include <mcmc/mcmc_simulation/header.hpp>
 #include <param_helper/params.hpp>
 
-
-#include "../util/measures/lattice_measures.hpp"
+#include <lattice_model_impl/util/measures/lattice_measures.hpp>
 
 
 namespace lm_impl {
@@ -18,19 +17,19 @@ namespace lm_impl {
             explicit SiteSystem(const json params) : mcmc::simulation::MeasureSystemBase<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>(params) {
                 sampler_ptr_ = std::make_unique<Sampler>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Sampler>(
-                        *this, Sampler::name()));
+                        *this, Sampler::name(), Sampler::type()));
 
                 mcmc_model_ptr_ = std::make_unique<Model>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Model>(
-                        *this, Model::name()));
+                        *this, Model::name(), Model::type()));
 
                 mcmc_method_ptr_ = std::make_unique<Method>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, Method>(
-                        *this, Method::name()));
+                        *this, Method::name(), Method::type()));
 
                 site_update_ptr_ = std::make_unique<UpdateDynamics>(
                     mcmc::util::generate_parameter_class_json<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>, UpdateDynamics>(
-                        *this, UpdateDynamics::name()));
+                        *this, UpdateDynamics::name(), UpdateDynamics::type()));
 
                 // Needs to stay here since other site_update or update_formalism use site as reference
                 initialize_site();
@@ -60,7 +59,7 @@ namespace lm_impl {
 
             typedef SiteSystem<T, Model, Method, UpdateDynamics, Sampler> System;
 
-            void write_to_file(const std::string rel_config_path) override {
+            void write_to_file(const std::string &rel_config_path) override {
                 std::string sampler_params_path = this->template get_entry<std::string>(
                     Sampler::name() + "_path", rel_config_path);
                 sampler_ptr_->write_to_file(sampler_params_path);
@@ -163,6 +162,8 @@ namespace lm_impl {
 
                 auto common_defined_measures = this->generate_systembase_measures(this->measure_names());
                 this->concat_measures(common_defined_measures);
+
+                this->sort_measures();
             }
 
             auto& get_sampler() const {
@@ -238,7 +239,6 @@ namespace lm_impl {
             std::cout << site(0) << std::endl;
             return os;
         }
-
 
         template<typename T, typename Model, typename Method, typename UpdateDynamics, typename Sampler>
         std::vector<std::unique_ptr<mcmc::measures::Measure<SiteSystem<T, Model, Method, UpdateDynamics, Sampler>>>>

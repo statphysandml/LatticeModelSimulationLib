@@ -2,7 +2,7 @@
 #define MCMCSIMULATIONLIB_DUMMY_SAMPLER_HPP
 
 
-#include <mcmc_simulation/util/random.hpp>
+#include <mcmc/mcmc_simulation/util/random.hpp>
 
 
 namespace lm_impl {
